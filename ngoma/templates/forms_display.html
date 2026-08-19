@@ -1,0 +1,20 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h2>Uploaded Forms</h2>
+
+{% if forms %}
+    <ul>
+        {% for f in forms %}
+            <li>
+                <strong>{{ f.title }}</strong><br>
+                <a href="{{ f.file.url }}" download>Download</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No forms uploaded yet.</p>
+{% endif %}
+
+<a href="{% url 'ngoma:upload' %}">Upload forms</a>
+{% endblock content %}

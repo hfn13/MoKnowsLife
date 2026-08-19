@@ -1,0 +1,24 @@
+{% extends 'base2.html' %}
+{% block content %}
+<h1>WorkOut Library</h1>
+
+<ul>
+    {% for menu in menus %}
+        <li>
+            <h3>{{ menu.name }}</h3>
+        
+            {% for sub in sub_cat_by_menu.menu.id %}
+                <li>
+                    {{ sub.name }}
+                </li>
+            {% empty %}
+                <p>No categories added.</p>
+            {% endfor %}
+        </li>
+    {% empty %}
+        <p>No workout menus added.</p>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'ngoma:update_menu'%}">Update menu</a>
+{% endblock content %}

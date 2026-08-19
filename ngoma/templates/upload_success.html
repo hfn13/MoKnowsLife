@@ -1,0 +1,4 @@
+{% for f in files %}
+    <p>{{ f.title }}</p>
+    <a href="{{ f.file.url }}">Download</a>
+{% endfor %}

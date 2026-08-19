@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Directory</h1>
+
+<ul>
+    {% for stafff in staff %}
+    <li>
+        <p>stafff</p>
+    </li>
+    {% empty %}
+    <p>No staff added.</p>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
