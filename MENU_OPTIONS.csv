@@ -1,9 +1,9 @@
-,code,name
-0,A,Accelaration (0-30m)
-1,B,Max Velocity (30-60m)
-2,C,Speed Endurance / Technique + Endurance
-3,D,Capacity/Tempo
-4,E,Rhythm/ Mechanics / Rhythm
-5,F,Strength
-6,G,Power / Elastic
-7,R,Recovery
+,code,name,notes
+0,A,Accelaration (0-30m),"['Purpose: first-step power, shin angles, reaction, projection', 'Rules: high quality, low volume, FULL rest', 'Total Sprint Volume: 8–12 reps (10–30m)', 'Rest: 2–4 min between reps (full recovery)', 'Stop Rule: stop the session if speed drops or posture breaks']"
+1,B,Max Velocity (30-60m),"['Purpose: upright mechanics, elastic speed, stride frequency, relaxation at high velocity', 'Rules: never fatigued, never rushed, FULL rest, stop early', 'Volume: 6-8 quality reps total (flying reps)', 'Rest: 4–6 min between fly reps', 'Best used: fresh day, NOT after heavy legs, NOT after hard speed endurance']"
+2,C,Speed Endurance / Technique + Endurance,"['Purpose: teach the body to maintain mechanics while tired, build 100m/200m finish power, strengthen speed posture', 'Rules: fast but controlled, no sloppy reps, full rest, stop if form breaks', 'Volume: moderate (quality > quantity)', 'Intensity: ~80–90% depending on the option', 'Rest: long enough to keep mechanics clean (2–6 min depending)', 'Best used: 1x per 7-day week (or 1x per 9-day cycle)', 'NOT the day after: max velocity OR heavy legs']"
+3,D,Capacity/Tempo,"['Purpose: aerobic base, rhythm, tissue healing, restore nervous system, improve repeatability', 'Rules: conversational pace, ZERO CNS strain, finish better than you started', 'Intensity: ~60–70% effort (easy)', 'Volume: 10–20 min total work OR short tempo sets', 'Rest: short / walkback / relaxed', 'Best used: 1–3x per week depending on phase + stress', 'Perfect for: days you coach hard, feel beat up, or need recovery but still want work']"
+4,E,Rhythm/ Mechanics / Rhythm,"['Purpose: clean sprint mechanics, posture control, rhythm, coordination, movement literacy', 'Rules: high intent, low fatigue, no grinding, no exhaustion', 'Intensity: low → moderate', 'Time: 15–30 min', '\n          Best used:\n            • before speed days (as warm-up)\n            • on recovery days\n            • on strength days\n            • anytime you need technique without CNS stress\n          ']"
+5,F,Strength,"['Purpose: strength foundation, posture under load, durability, sprint support', 'Rules: perfect positions, no grinders, leave strong not sore', 'Intensity: moderate (progress over weeks, not ego days)', 'Time: 45–70 min', 'Best used: 2x/week in most 7-day schedules']"
+6,G,Power / Elastic,"['Purpose: explosiveness, stiffness, elastic rebound, speed transfer', 'Rules: fast reps, full recovery, stop before fatigue', 'Intensity: moderate (high intent, low volume)', 'Time: 35–60 min', 'Best used: 1x/week in a 7-day plan (sometimes 2x in peak blocks)']"
+7,R,Recovery,"['Purpose: joint health, tissue quality, mobility, nervous system reset, durability', 'Rules: easy effort, clean positions, consistent frequency', 'Time: 20–60 minutes depending on option', 'Best used: weekly reset day OR post-hard training day OR travel day']"

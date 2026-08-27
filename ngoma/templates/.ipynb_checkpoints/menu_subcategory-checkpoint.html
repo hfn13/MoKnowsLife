@@ -1,0 +1,18 @@
+{% extends 'base2.html' %}
+{% block content %}
+<h2>{{ menu }}</h2>
+<h3>{{ submenu }}</h3>
+
+<h4>Blocks</h4>
+<ul>
+    {% for block in blocks %}
+    <li>
+        <p>{{ block }}</p>
+    </li>
+    {% empty %}
+        <p>No blocks have been added</p>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'ngoma:update_submenu' submenu.id %}">Update menu</a>
+{% endblock content %}

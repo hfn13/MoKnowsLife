@@ -1,0 +1,220 @@
+SubCategory,Block,Phase
+A1,Warm Up,Base
+A1,Posture,Base
+A1,Sprint Reaction,Base
+A1,Wall Drills,Base
+A1,10×20m Reaction Starts,
+A1,Hips,Base
+
+A2,Warm Up,Base
+A2,Wall Drills,Base
+A2,Fast Leg,
+A2,Sprint Reaction,Base
+A2,6–10×10–20m Starts,
+A2,Mobility,Base
+
+A3,Warm Up,Base
+A3,Posture,Base
+A3,Wall Drills,Base
+A3,Sled,Base
+A3,6–8×10m Resisted,
+A3,6–8×10m Free,
+A3,Core,Base
+
+A4,Warm Up,Base
+A4,Wickets 10m,
+A4,Fast Leg,
+A4,Wall Drills,Base
+A4,8×10–20m Accel,
+A4,Plyos,Base
+
+B1,Warm Up,Build
+B1,Wall Drills,Base
+B1,Fast Leg,
+B1,Posture,Base
+B1,Build-Up → Fly 10m,
+B1,Hips,Base
+
+B2,Warm Up,Build
+B2,Posture,Base
+B2,Wall Drills,Base
+B2,Wickets 10m,
+B2,Fly 20m,
+B2,Mobility,Base
+
+B3,Warm Up,Build
+B3,Fast Leg,
+B3,Wall Drills,Base
+B3,Sprint Reaction,Base
+B3,Sprint → Float → Sprint,
+B3,Hips,Base
+
+B4,Warm Up,Build
+B4,Wall Drills,Base
+B4,Posture,Base
+B4,Wickets 10m,
+B4,Wickets → Fly 10m,
+B4,Mobility,Base
+
+C1,Warm Up,Build
+C1,Wall Drills,Build
+C1,Posture,Build
+C1,Plyos,Build
+C1,Float Fly 150m,
+C1,Hips,Build
+
+C2,Warm Up,Build
+C2,Fast Leg,
+C2,Wall Drills,Base
+C2,Fly 2×30m,
+C2,Sled,Build
+C2,Mobility,Build
+
+C3,Warm Up,Build
+C3,Posture,Build
+C3,Mobility,Build
+C3,Bounding 4×20m,
+C3,2×300m,
+C3,Hips,Build
+
+C4,Warm Up,Build
+C4,Wall Drills,Base
+C4,Fast Leg,
+C4,Sprint Reaction,Build
+C4,2×200m Float-Fast,
+C4,2×100m Fast Finish,
+
+D1,Warm Up,Base
+D1,Mobility,Base
+D1,Posture,Base
+D1,Tempo 6×100m,
+D1,Hips,Base
+D1,Cool Down,Base
+
+D2,Warm Up,Base
+D2,Mobility,Base
+D2,Wall Drills,Base
+D2,8–12×100m Grass Strides,
+D2,Hips,Base
+D2,Foam Roll Quick Hit,
+
+D3,Warm Up,Base
+D3,Mobility,Base
+D3,Row steady 12–20 min,
+D3,Core,Base
+D3,Posterior Chain Stretch,
+D3,Breathing Reset,
+
+D4,Warm Up,Base
+D4,Wall Drills,Base
+D4,Fast Leg,
+D4,6–8×60–100m Strides,
+D4,Posture,Base
+D4,Hips,Base
+
+E1,Warm Up,Build
+E1,Posture,Base
+E1,Core,Base
+E1,Mobility,Base
+E1,Hips,Base
+E1,Foam Roll Quick Hit,
+
+E2,Warm Up,Build
+E2,Wall Drills,Base
+E2,Wall Drills,Build
+E2,Fast Leg,
+E2,A-March / A-Skip,
+E2,Mobility,Base
+
+E3,Warm Up,Base
+E3,A/B Skips,
+E3,Fast Leg,
+E3,Wickets 10m,
+E3,Plyos,Base
+E3,Posture,Base
+
+E4,Warm Up,Base
+E4,Sprint Reaction,Base
+E4,Wall Drills,Base
+E4,Fast Leg,
+E4,Core,Base
+E4,Hips,Base
+
+F1,Warm Up,Base
+F1,Front Squat,
+F1,RDL / Hinge Pattern,
+F1,DB Split Squat,
+F1,Pull-Ups,
+F1,Core,Base
+
+F2,Warm Up,Base
+F2,DB Bench / Push-Up Strength,
+F2,Row Variation,
+F2,Pull-Ups,
+F2,DB Lateral Raise + DB Front Raise,
+F2,Farmers Carry,
+
+F3,Warm Up,Base
+F3,DB Snatch,
+F3,Trap Bar Deadlift,
+F3,Step-Ups OR DB Split Squat,
+F3,Pull-Ups,
+F3,Calf Raises,
+F3,Core,Base
+
+F4,DB Snatch,
+F4,Goblet Squat → Tempo Squat,
+F4,KB Swings / RDL,
+F4,Push-Up Variation,
+F4,Row Variation,
+F4,Farmers Carry / Core Circuit,
+
+G1,Warm Up,Base
+G1,Posture,Base
+G1,Med Ball Throws Series,
+G1,Plyos,Base
+G1,Short Sled,Base
+G1,Mobility,Base
+
+G2,Warm Up,Base
+G2,Fast Leg,
+G2,Bounding 4×20m,
+G2,Broad Jump / Squat Jump Series,
+G2,Calf Raise,
+G2,Core,Base
+
+G3,Warm Up,Base
+G3,DB Snatch,
+G3,Clean Complex,
+G3,Trap Bar Deadlift (speed reps),
+G3,Jump Series,
+G3,Posterior Chain Stretch,
+
+R1,Serratus Activation @ Wall,
+R1,Single Arm Serratus Punch (KB or band),
+R1,Standing ER @ 90° Abd (band),
+R1,Standing IR @ 90° Abd (band),
+R1,Side Plank + Clam (band),
+R1,Posterior Chain Stretch,
+
+R2,Warm Up,Build
+R2,Mobility,Base
+R2,Band Walks(Forwards + Lateral),
+R2,Glute Bridge,
+R2,Calf Raise,
+R2,Foam Roll,
+
+R3,20–40 min walk,
+R3,Mobility,Base
+R3,Breathing Reset (5-10 min nasal),
+R3,Massage Gun,
+R3,Ice Bath / Contrast Shower,
+R3,Light Stretch Flow,
+
+R4,Serratus Activation @ Wall,
+R4,Standing ER (band),
+R4,Standing IR (band),
+R4,Side Plank + Clam (band),
+R4,Mobility,Base
+R4,Foam Roll / Massage Gun (2-3 min),
+

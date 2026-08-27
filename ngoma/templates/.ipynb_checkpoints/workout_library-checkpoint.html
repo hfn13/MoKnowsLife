@@ -1,24 +1,26 @@
 {% extends 'base2.html' %}
 {% block content %}
-<h1>WorkOut Library</h1>
+<h1>Workout Library</h1>
 
 <ul>
-    {% for menu in menus %}
+    {% for phase,blocks in block_by_phase.items %}
         <li>
-            <h3>{{ menu.name }}</h3>
+            <h3>
+                <a href="{% url 'ngoma:phase_view' phase.id %}">{{ phase }}</a>
+            </h3>
         
-            {% for sub in sub_cat_by_menu.menu.id %}
+            {% for block in blocks %}
                 <li>
-                    {{ sub.name }}
+                    <a href="{% url 'ngoma:block_view' block.id %}">{{ block }}</a>
                 </li>
             {% empty %}
-                <p>No categories added.</p>
+                <p>No blocks added.</p>
             {% endfor %}
         </li>
     {% empty %}
-        <p>No workout menus added.</p>
+        <p>No phases added.</p>
     {% endfor %}
 </ul>
 
-<a href="{% url 'ngoma:update_menu'%}">Update menu</a>
+<a href="{% url 'ngoma:update_menu'%}">Update library</a>
 {% endblock content %}

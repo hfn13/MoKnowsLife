@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill,Upload,MenuCategory,MenuSubCategory
+from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill,Upload,MenuCategory,MenuSubCategory,BlockChoice,PhaseChoice,MenuOption
 
 # Register your models here.
 admin.site.register(ProfileData)
@@ -14,3 +14,6 @@ admin.site.register(LiftTest)
 admin.site.register(LiftTestData)
 admin.site.register(WorkoutDrill)
 admin.site.register(Upload)
+admin.site.register(BlockChoice)
+admin.site.register(PhaseChoice)
+admin.site.register(MenuOption)
