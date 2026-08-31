@@ -12,6 +12,9 @@ class ProfileData(models.Model):
     def __str__(self):
         return self.first_name + self.last_name
 
+    class Meta:
+        app_label='ngoma'
+
 class PhaseChoice(models.Model):
     phase = models.CharField(max_length=200)
     order = models.IntegerField()
@@ -19,13 +22,18 @@ class PhaseChoice(models.Model):
     def __str__(self):
         return self.phase
 
+    class Meta:
+        app_label='ngoma'
+
 class BlockChoice(models.Model):
     phase = models.ForeignKey(PhaseChoice, on_delete=models.CASCADE)
     block = models.CharField(max_length=200)
     def __str__(self):
         return f'{self.block} {self.phase.order}'
-        
 
+    class Meta:
+        app_label='ngoma'
+        
 class WorkoutDrill(models.Model):
 
     block = models.ForeignKey(BlockChoice,  on_delete=models.SET_NULL, null=True)
@@ -38,6 +46,9 @@ class WorkoutDrill(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+    class Meta:
+        app_label='ngoma'
+
 class MenuCategory(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=200)         
@@ -45,6 +56,9 @@ class MenuCategory(models.Model):
     notes = models.TextField(blank=True, null=True)
     def __str__(self):
         return f'Menu {self.code}: {self.name}'
+
+    class Meta:
+        app_label='ngoma'
 
 class MenuSubCategory(models.Model):
     category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE)
@@ -57,6 +71,9 @@ class MenuSubCategory(models.Model):
     def __str__(self):
         return f"{self.code} — {self.title}"
 
+    class Meta:
+        app_label='ngoma'
+
 
 class Session(models.Model): 
     session_type = models.ForeignKey(MenuCategory, null=True, on_delete=models.SET_NULL)
@@ -68,6 +85,9 @@ class Session(models.Model):
     def __str__(self):
         return f'{self.date} {self.session_type} at {self.location}'
 
+    class Meta:
+        app_label='ngoma'
+
 class Attendance(models.Model):
    
     player = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
@@ -78,6 +98,9 @@ class Attendance(models.Model):
     class Meta:
         unique_together = ('player', 'session')
 
+    class Meta:
+        app_label='ngoma'
+
 class TrackTest(models.Model):
     
     test = models.CharField(max_length=200)
@@ -85,13 +108,18 @@ class TrackTest(models.Model):
     def __str__(self):
         return self.test
 
+    class Meta:
+        app_label='ngoma'
+
 class TrackTestData(models.Model):
 
     profile = models.ForeignKey(ProfileData, on_delete = models.CASCADE)
     test = models.OneToOneField(TrackTest, on_delete=models.CASCADE)
     date = models.DateTimeField()
     time = models.IntegerField(blank=True, null=True)
-    
+
+    class Meta:
+        app_label='ngoma'
 
 class LiftTest(models.Model):
 
@@ -100,11 +128,18 @@ class LiftTest(models.Model):
     def __str__(self):
         return self.test
 
+    class Meta:
+        app_label='ngoma'
+
+
 class LiftTestData(models.Model):
     profile = models.ForeignKey(ProfileData, on_delete = models.CASCADE)
     test = models.OneToOneField(LiftTest, on_delete=models.CASCADE)
     date = models.DateTimeField(blank=True, null=True)
     time = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        app_label='ngoma'
 
 class MenuOption(models.Model):
     category = models.ForeignKey(MenuSubCategory, on_delete=models.CASCADE)
@@ -113,9 +148,15 @@ class MenuOption(models.Model):
     def __str__(self):
         return self.block
 
+    class Meta:
+        app_label='ngoma'
+
 class Upload(models.Model):
     title = models.CharField(max_length=200)
     file = models.FileField(upload_to='uploads/')
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        app_label='ngoma'

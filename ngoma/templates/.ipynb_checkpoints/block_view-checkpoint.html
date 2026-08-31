@@ -3,5 +3,14 @@
 {% block content %}
 
 <h1> {{ drill_block }} </h1>
+<ul>
+    {% for drill in drills %}
+    <li>
+        <p>{{ drill }}</p>
+    </li>
+    {% empty %}
+      <p>No workout drills added</p>
+    {% endfor %}
+</ul>
 
 {% endblock content %}

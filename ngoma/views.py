@@ -66,12 +66,24 @@ def menu_library(request):
 def menucategory(request, cat_id):
     menu = MenuCategory.objects.get(id=cat_id)
     submenus = menu.menusubcategory_set.all()
-    notes = menu.notes
+
+    submenu_by_cat = {}
+    for submenu in submenus:
+        submenu_by_cat[submenu] = MenuOption.objects.filter(category=submenu)
+        
+    import ast
+
+    raw_notes = menu.notes or "[]"
+    notes = ast.literal_eval(raw_notes)
+    notes = [note.split(':') for note in notes]
+
+    
 
     context = {
         'menu' : menu,
         'submenus' : submenus,
-        'notes' : notes
+        'notes' : notes,
+        'submenu_by_cat' : submenu_by_cat
     }
     
     return render(request, 'menu_category.html', context)

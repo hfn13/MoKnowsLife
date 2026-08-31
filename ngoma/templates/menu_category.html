@@ -1,4 +1,36 @@
 {% extends 'base2.html' %}
 {% block content %}
 <h2>{{ menu }}</h2>
+
+<ul>
+    {% for note in notes %}
+    <li>
+        <p>
+            <strong>{{ note.0 }}</strong> : {{ note.1 }}
+        </p>
+    </li>
+    {% empty %}
+      <p>No notes added</p>
+    {% endfor %}
+</ul>
+
+<h3>Menus</h3>
+<ul>
+    {% for submenu,blocks in submenu_by_cat.items %}
+    <li>
+        <a>
+           <h4>{{submenu}}</h4> 
+        </a>
+    </li>
+        {% for block in blocks %}
+            <li>
+                <p>{{ block }}</p>
+            </li>
+        {% empty %}
+          <p>No blocks have been added</p>
+        {% endfor %}
+    {% empty %}
+    <p>No submenus added</p>
+    {% endfor %}
+</ul>
 {% endblock content %}
