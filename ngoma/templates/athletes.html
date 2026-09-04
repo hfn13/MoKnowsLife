@@ -1,0 +1,15 @@
+{% extends 'base2.html' %}
+{% block content %}
+<h1>Athlete profiles</h1>
+
+<ul>
+    {% for athlete in athletes %}
+    <li>
+        <a href="{% url 'ngoma:athlete' athlete.id %}">{{ athlete }}</a>
+    </li>
+    {% empty %}
+    <p>No athletes have been added</p>
+    {% endfor %}
+</ul>
+<a href="{% url 'ngoma:add_athlete'%}">Add athlete</a>
+{% endblock content %}

@@ -1,0 +1,8 @@
+{% block content %}
+<p>Add a new player</p>
+<form action="{% url 'ngoma:add_athlete' %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">add athlete</button>
+</form
+{% endblock content %}

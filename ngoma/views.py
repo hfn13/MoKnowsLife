@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
-
+from django.utils import timezone
 from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption
 
-from .forms import UploadForm
+from .forms import UploadForm,NewAthleteForm
 
+now = timezone.now()
 # Create your views here.
 def ngoma_home(request):
     'Ngoma Fitness home.'
@@ -101,18 +102,18 @@ def menusubcategory(request, subcat_id):
     return render(request, 'menu_subcategory.html', context)
 
 
-def athletes(request):
-    'List of signed up athletes'
-    return render(request, 'athletes.html')
+# def athletes(request):
+#     'List of signed up athletes'
+#     return render(request, 'athletes.html')
 
-def athlete(request, athlete_id):
-    'Athlete Dashboard to track progress'
-    athlete = ProfileData.objects.get(id=athlete_id)
+# def athlete(request, athlete_id):
+#     'Athlete Dashboard to track progress'
+#     athlete = ProfileData.objects.get(id=athlete_id)
 
-    context = {
-        'athlete' : athlete
-    }
-    return render(request, 'athlete.html', context)
+#     context = {
+#         'athlete' : athlete
+#     }
+#     return render(request, 'athlete.html', context)
 
 def forms_display(request):
     forms = Upload.objects.all()
@@ -146,7 +147,20 @@ def update_menuoptions(request):
     workouts_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\workouts.csv")
     phases_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\phases.csv")
     blocks_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\blocks.csv")
+    track_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\Track_tests.csv")
+    lift_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\Lift_tests.csv")
 
+    for _,trackt_row in track_df.iterrows():
+        TrackTest.objects.get_or_create(
+            test = trackt_row['test']
+        )
+
+
+    for _,liftt_row in lift_df.iterrows():
+        LiftTest.objects.get_or_create(
+            test = liftt_row['test']
+        )
+    
     for _, phase_row in phases_df.iterrows():
         phase, _ = PhaseChoice.objects.get_or_create(
             phase=phase_row['phase'],
@@ -224,3 +238,93 @@ def update_submenu(request, submenu_id):
         )
 
     return redirect('ngoma:menu_subcategory', submenu_id)
+
+
+def athletes(request):
+    athletes = ProfileData.objects.all()
+
+    context = {
+        'athletes' : athletes
+    }
+
+    return render(request, 'athletes.html', context)
+
+def athlete(request, athlete_id):
+    from datetime import date
+    athlete = ProfileData.objects.get(id=athlete_id)
+    today = date.today()
+
+    age = today.year - athlete.DOB.year - (
+        (today.month, today.day) < (athlete.DOB.month, athlete.DOB.day)
+    )
+    
+    
+    track_data = TrackTestData.objects.filter(profile=athlete)
+    track_tests = TrackTest.objects.all()
+    lift_data = LiftTestData.objects.filter(profile=athlete)
+    lift_tests = LiftTest.objects.all()
+
+    track_summary = {}
+
+    for test in track_tests:
+        test_results = track_data.filter(test=test).order_by('date')
+
+        if test_results.exists():
+            values = [d.value for d in test_results]
+
+            track_summary[test] = {
+                'fastest': min(values),
+                'slowest': max(values),
+                'latest': test_results.last().value
+            }
+        else:
+            track_summary[test] = {
+                'fastest': 0,
+                'slowest': 0,
+                'latest': 0
+            }
+    
+
+    lift_summary = {}
+
+    for test in lift_tests:
+        test_results = lift_data.filter(test=test).order_by('date')
+
+        if test_results.exists():
+            values = [d.value for d in test_results]
+
+            lift_summary[test] = {
+                'fastest': min(values),
+                'slowest': max(values),
+                'latest': test_results.last().value
+            }
+        else:
+            lift_summary[test] = {
+                'fastest': 0,
+                'slowest': 0,
+                'latest': 0
+            }
+    context = {
+        'athlete' : athlete,
+        'age' : age,
+        'track_tests':track_tests,
+        'track_data' : track_data,
+        'track_summary':track_summary,
+        'lift_tests':lift_tests,
+        'lift_data' : lift_data,
+        'lift_summary':lift_summary,
+    }
+
+    return render(request, 'athlete.html', context)
+
+
+def new_athlete(request):
+    if request.method == 'POST':
+        form = NewAthleteForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('ngoma:athletes')
+    else:
+        form = NewAthleteForm()
+
+    return render(request, 'newathlete.html', {'form': form})

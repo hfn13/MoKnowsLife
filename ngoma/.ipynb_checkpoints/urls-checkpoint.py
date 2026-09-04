@@ -47,5 +47,13 @@ urlpatterns=[
     #Upload success
     path('upload_success/', views.upload_success, name='upload_success'),
 
+    #Athletes
+    path('athletes/', views.athletes, name = 'athletes'),
+
+    #Athlete dashboard
+    path('athletes/<int:athlete_id>/', views.athlete, name='athlete'),
+
+    #Add new athlete
+    path('add_athlete/', views.new_athlete, name='add_athlete')
    
 ]
