@@ -16,14 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from platform1 import views
+from ngoma import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('platform1/', include('platform1.urls', namespace='Platform1')),
-    path('', views.index, name='home'),
+    #path('platform1/', include('platform1.urls', namespace='Platform1')),
+    path('', views.ngoma_home, name='home'),
     path('ngoma/', include(('ngoma.urls', 'ngoma'), namespace='ngoma'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

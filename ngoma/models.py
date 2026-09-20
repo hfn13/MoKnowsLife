@@ -6,11 +6,11 @@ class ProfileData(models.Model):
     middle_name = models.CharField(max_length=200, blank=True, null=True)
     last_name = models.CharField(max_length=200)
     DOB = models.DateField(blank=True, null=True)
-    height = models.IntegerField(blank=True, null=True)
-    weight = models.IntegerField(blank=True, null=True)
+    height = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
+    weight = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
 
     def __str__(self):
-        return self.first_name + self.last_name
+        return f'{self.first_name} {self.last_name}'
 
     class Meta:
         app_label='ngoma'
@@ -111,12 +111,17 @@ class TrackTest(models.Model):
     class Meta:
         app_label='ngoma'
 
+# class TrackTestProfile(models.Model):
+#     athlete = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
+#     test = models.ForeignKey(TrackTest, on_delete=models.CASCADE)
+     
+
 class TrackTestData(models.Model):
 
     profile = models.ForeignKey(ProfileData, on_delete = models.CASCADE)
-    test = models.OneToOneField(TrackTest, on_delete=models.CASCADE)
+    test = models.ForeignKey(TrackTest, on_delete=models.CASCADE)
     date = models.DateTimeField()
-    time = models.IntegerField(blank=True, null=True)
+    value = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
 
     class Meta:
         app_label='ngoma'
@@ -134,9 +139,9 @@ class LiftTest(models.Model):
 
 class LiftTestData(models.Model):
     profile = models.ForeignKey(ProfileData, on_delete = models.CASCADE)
-    test = models.OneToOneField(LiftTest, on_delete=models.CASCADE)
+    test = models.ForeignKey(LiftTest, on_delete=models.CASCADE)
     date = models.DateTimeField(blank=True, null=True)
-    time = models.IntegerField(blank=True, null=True)
+    value = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
 
     class Meta:
         app_label='ngoma'
@@ -150,6 +155,44 @@ class MenuOption(models.Model):
 
     class Meta:
         app_label='ngoma'
+
+class TrendAnalyses(models.Model):
+    analyses = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.analyses
+
+class TrendTest(models.Model):
+    test = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.test
+
+class TrendTestData(models.Model):
+
+    profile = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
+    analyses = models.ForeignKey(TrendAnalyses, on_delete=models.SET_NULL, null=True, blank=True)
+    test = models.ForeignKey(TrendTest, on_delete=models.CASCADE)
+    date = models.DateField(blank=True, null=True)
+    value = models.DecimalField(max_digits=6, decimal_places=2)
+    
+    
+    def __str__(self):
+        return f'{self.profile} {self.test}'
+
+
+class CISTI_score(models.Model):
+    test = models.OneToOneField(TrendTest, on_delete=models.SET_NULL, null=True)
+    consistency = models.DecimalField(max_digits=6, decimal_places=2)
+    intensity = models.DecimalField(max_digits=6, decimal_places=2)
+    speed = models.DecimalField(max_digits=6, decimal_places=2)
+    technique = models.DecimalField(max_digits=6, decimal_places=2)
+    intent = models.DecimalField(max_digits=6, decimal_places=2)
+    overall = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f'CISTI score: {self.overall}'
+
 
 class Upload(models.Model):
     title = models.CharField(max_length=200)

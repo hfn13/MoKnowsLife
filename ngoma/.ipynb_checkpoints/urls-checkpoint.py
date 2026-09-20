@@ -54,6 +54,9 @@ urlpatterns=[
     path('athletes/<int:athlete_id>/', views.athlete, name='athlete'),
 
     #Add new athlete
-    path('add_athlete/', views.new_athlete, name='add_athlete')
+    path('add_athlete/', views.new_athlete, name='add_athlete'),
+
+    # Update athlete data
+    path('update_athlete_profile/<int:athlete_id>/', views.update_athlete_profile, name='update_athlete_profile')
    
 ]

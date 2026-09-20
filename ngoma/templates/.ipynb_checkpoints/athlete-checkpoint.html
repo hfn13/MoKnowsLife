@@ -1,92 +1,169 @@
 {% extends 'base2.html' %}
 {% block content %}
-<h3> 
-    <strong>Name:</strong> {{ athlete }}
-</h3>
-<h3> 
-    <strong>Age:</strong> {{ age }}
-</h3>
-<h3> 
-    <strong>Weight:</strong> {{ athlete.weight }}
-</h3>
-<h3> 
-    <strong>Height:</strong> {{ athlete.height }}
-</h3>
+{% load dict_extras %}
 
-<h2>Track Test</h2>
+<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+  <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+  <label class="btn btn-outline-primary" for="btnradio1">Athlete Dashboard</label>
+
+  <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
+  <label class="btn btn-outline-primary" for="btnradio2">Trends</label>
+
+  <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+  <label class="btn btn-outline-primary" for="btnradio3">Review</label>
+
+  <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
+  <label class="btn btn-outline-primary" for="btnradio4">Info</label>
+</div>
+
+<a href="{% url 'ngoma:update_athlete_profile' athlete.id %}">Update Player Profile</a>
+<div id="content1" class="content-section">
+    <h3> 
+        <strong>Name:</strong> {{ athlete }}
+    </h3>
+    <h3> 
+        <strong>Age:</strong> {{ age }}
+    </h3>
+    <h3> 
+        <strong>Weight:</strong> {{ athlete.weight }} kgs
+    </h3>
+    <h3> 
+        <strong>Height:</strong> {{ athlete.height }} cm
+    </h3>
+    
+    <h2>Track Test</h2>
+    
+    
+    
+    
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Category</th>
+                {% for test in track_tests %}
+                    <th>{{ test }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    
+        <tbody>
+            <tr>
+                <td><strong>Fastest</strong></td>
+                {% for test in track_tests %}
+                    <td>{{ track_summary|get_item:test|get_item:"fastest" }}</td>
+                {% endfor %}
+            </tr>
+    
+            <tr>
+                <td><strong>Slowest</strong></td>
+                {% for test in track_tests %}
+                    <td>{{ track_summary|get_item:test|get_item:"slowest" }}</td>
+                {% endfor %}
+            </tr>
+    
+            <tr>
+                <td><strong>Latest</strong></td>
+                {% for test in track_tests %}
+                    <td>{{ track_summary|get_item:test|get_item:"latest" }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+    
+    
+    <h2>Lift Test</h2>
+    
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Category</th>
+                {% for test in lift_tests %}
+                    <th>{{ test.test }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+    
+        <tbody>
+            <tr>
+                <td><strong>Fastest</strong></td>
+                {% for test in lift_tests %}
+                    <td>{{ lift_summary|get_item:test|get_item:"fastest" }}</td>
+                {% endfor %}
+            </tr>
+    
+            <tr>
+                <td><strong>Slowest</strong></td>
+                {% for test in lift_tests %}
+                    <td>{{ lift_summary|get_item:test|get_item:"slowest" }}</td>
+                {% endfor %}
+            </tr>
+    
+            <tr>
+                <td><strong>Latest</strong></td>
+                {% for test in lift_tests %}
+                    <td>{{ lift_summary|get_item:test|get_item:"latest" }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+   
+</div>
+
+<div id="content2" class="content-section" style="display:none;">
+    {% for analysis_name, table in trend_tables.items %}
+        <h2>{{ analysis_name }}</h2>
+    
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <td><strong>Date</strong></td>
+                    {% for test in table.tests %}
+                        <td>{{ test }}</td>
+                    {% endfor %}
+                </tr>
+            </thead>
+    
+            <tbody>
+                {% for row in table.rows %}
+                    <tr>
+                        <td>{{ row.date }}</td>
+                        {% for value in row.values %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
 
 
+</div>
 
+<div id="content3" class="content-section" style="display:none;">
+    
+</div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Category</th>
-            {% for test in track_tests %}
-                <th>{{ test }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
+<div id="content4" class="content-section" style="display:none;">
+    
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
-    <tbody>
-        <tr>
-            <td><strong>Fastest</strong></td>
-            {% for test in track_tests %}
-                <td>{{ track_summary.test.fastest }}</td>
-            {% endfor %}
-        </tr>
+    const sections = {
+        btnradio1: document.getElementById("content1"),
+        btnradio2: document.getElementById("content2"),
+        btnradio3: document.getElementById("content3"),
+    };
 
-        <tr>
-            <td><strong>Slowest</strong></td>
-            {% for test in track_tests %}
-                <td>{{ track_summary.test.slowest }}</td>
-            {% endfor %}
-        </tr>
+    document.querySelectorAll("input[name='btnradio']").forEach(radio => {
+        radio.addEventListener("change", function () {
+            Object.values(sections).forEach(sec => sec.style.display = "none");
+            sections[this.id].style.display = "block";
+        });
+    });
 
-        <tr>
-            <td><strong>Latest</strong></td>
-            {% for test in track_tests %}
-                <td>{{ track_summary.test.latest }}</td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
+});
+</script>
 
-
-<h2>Lift Test</h2>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Category</th>
-            {% for test in lift_tests %}
-                <th>{{ test.test }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-
-    <tbody>
-        <tr>
-            <td><strong>Fastest</strong></td>
-            {% for test in lift_tests %}
-                <td>{{ lift_summary.test.fastest }}</td>
-            {% endfor %}
-        </tr>
-
-        <tr>
-            <td><strong>Slowest</strong></td>
-            {% for test in lift_tests %}
-                <td>{{ lift_summary.test.slowest }}</td>
-            {% endfor %}
-        </tr>
-
-        <tr>
-            <td><strong>Latest</strong></td>
-            {% for test in lift_tests %}
-                <td>{{ lift_summary.test.latest }}</td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
 
 {% endblock content %}

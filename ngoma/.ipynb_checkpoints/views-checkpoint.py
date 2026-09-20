@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
-from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption
+from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTI_score, TrendTestData
 
 from .forms import UploadForm,NewAthleteForm
 
 now = timezone.now()
 # Create your views here.
+
+
 def ngoma_home(request):
     'Ngoma Fitness home.'
     return render(request, 'ngoma_index.html')
@@ -150,6 +152,13 @@ def update_menuoptions(request):
     track_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\Track_tests.csv")
     lift_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\Lift_tests.csv")
 
+    trend_test = ['100','150','150 Float Fly','200 Float Fly','200 Breakdowns','200','300', '2x100m', '3x300m', '2x150m', '200m Breakdown', '200m Split', '200m @ 85%']
+    trend_test_df = pd.DataFrame(trend_test, columns=['Test'])
+    
+    trend_analyses = ['Performance vs Distance', 'Drop % vs Distance', 'Consistency vs Distance', 'Effort vs Time']
+    trend_analyses_df = pd.DataFrame(trend_analyses, columns=['Analyses'])
+
+    
     for _,trackt_row in track_df.iterrows():
         TrackTest.objects.get_or_create(
             test = trackt_row['test']
@@ -219,6 +228,18 @@ def update_menuoptions(request):
                 subtitle=sub_row['subtitle']
             )
 
+
+
+    trend_tests_df = pd.read_csv(r"C:\Users\cex\Desktop\moknowslife\trend_tests.csv")
+    for _,row in trend_tests_df.iterrows():
+        LiftTest.objects.get_or_create(
+                test = row['Test']
+            ) 
+
+    for _,row in trend_analyses_df.iterrows():
+        TrendAnalyses.objects.get_or_create(
+            analyses = row['Analyses']
+        )
     
     return redirect('ngoma:workout_library')
 
@@ -250,6 +271,7 @@ def athletes(request):
     return render(request, 'athletes.html', context)
 
 def athlete(request, athlete_id):
+    #Athlete Dashboard
     from datetime import date
     athlete = ProfileData.objects.get(id=athlete_id)
     today = date.today()
@@ -304,6 +326,46 @@ def athlete(request, athlete_id):
                 'slowest': 0,
                 'latest': 0
             }
+
+    #Trends
+    trend_analyses = TrendAnalyses.objects.all()
+    trend_tests = TrendTestData.objects.filter(profile=athlete)
+    
+    trend_tables = {}
+    
+    for analyses in trend_analyses:
+        analyses_tests = trend_tests.filter(analyses=analyses).order_by('date')
+    
+        # Extract unique test names
+        test_names = list(
+            analyses_tests.values_list('test__test', flat=True).distinct()
+        )
+    
+        # Extract unique dates
+        dates = list(
+            analyses_tests.values_list('date', flat=True).distinct()
+        )
+    
+        # Build table rows
+        rows = []
+        for date in dates:
+            row = {'date': date, 'values': []}
+    
+            for test_name in test_names:
+                value_obj = analyses_tests.filter(
+                    date=date,
+                    test__test=test_name
+                ).first()
+    
+                row['values'].append(value_obj.value if value_obj else '')
+    
+            rows.append(row)
+    
+        trend_tables[analyses.analyses] = {
+            'tests': test_names,
+            'rows': rows
+        }
+
     context = {
         'athlete' : athlete,
         'age' : age,
@@ -313,6 +375,9 @@ def athlete(request, athlete_id):
         'lift_tests':lift_tests,
         'lift_data' : lift_data,
         'lift_summary':lift_summary,
+        'trend_analyses':trend_analyses,
+        'trend_tests':trend_tests,
+        'trend_tables':trend_tables
     }
 
     return render(request, 'athlete.html', context)
@@ -328,3 +393,144 @@ def new_athlete(request):
         form = NewAthleteForm()
 
     return render(request, 'newathlete.html', {'form': form})
+
+
+athletes_data = {
+    'Henry Nyinguro' : {'lift' : r"C:\Users\cex\Desktop\moknowslife\Track_DummyData.csv",
+                        'track' : r"C:\Users\cex\Desktop\moknowslife\Lift_DummyData.csv",
+                        #Trend analyses
+                        'Consistency vs Distance':r"C:\Users\cex\Desktop\moknowslife\Consistency vs Distance.csv",
+                        'Effort vs Time':r"C:\Users\cex\Desktop\moknowslife\Effort vs Time.csv",
+                        'Performance vs Distance':r"C:\Users\cex\Desktop\moknowslife\Performance vs Distance.csv",
+                        'Drop % vs Distance':r"C:\Users\cex\Desktop\moknowslife\Drop % vs Distance.csv"
+                       }
+}
+def update_athlete_profile(request, athlete_id):
+    athlete = ProfileData.objects.get(id=athlete_id)
+    athlete_string = f'{athlete.first_name} {athlete.last_name}'
+
+    
+    # Lift data
+    lift_df = pd.read_csv(athletes_data[athlete_string]['lift'])
+
+    lift_tests = lift_df.columns.difference(['Date','Unnamed: 0'])
+    for _, row in lift_df.iterrows():
+        for test in lift_tests:
+            test_obj, _ = LiftTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value): 
+                continue
+                
+            LiftTestData.objects.get_or_create(
+                profile = athlete,
+                test = test_obj,
+                date= row['Date'],
+                value = value
+            )
+    
+    # Track data
+    track_df = pd.read_csv(athletes_data[athlete_string]['track'])
+    track_tests = track_df.columns.difference(['Date','Unnamed: 0'])
+    for _, row in track_df.iterrows():
+        for test in track_tests:
+            test_obj, _ = TrackTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value):
+                continue
+                
+            TrackTestData.objects.get_or_create(
+                profile = athlete,
+                test = test_obj,
+                date= row['Date'],
+                value = value
+            )
+
+
+
+    ### Trend Analyses
+    # Consistency vs Distance
+    con_v_dist = pd.read_csv(athletes_data[athlete_string]['Consistency vs Distance'])
+    cvd_tests = con_v_dist.columns.difference(['Unnamed: 0'])
+    cvd_analyses = TrendAnalyses.objects.get(analyses='Consistency vs Distance')
+    for _, row in con_v_dist.iterrows():
+        for test in cvd_tests:
+            test_obj, _ = TrendTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value):
+                continue
+                
+            TrendTestData.objects.get_or_create(
+                profile = athlete,
+                analyses = cvd_analyses,
+                test = test_obj,
+                value = value
+            )
+    
+    # Effort vs Time
+    eff_v_time = pd.read_csv(athletes_data[athlete_string]['Effort vs Time'])
+    evt_tests = eff_v_time.columns.difference(['Unnamed: 0'])
+    evt_analyses = TrendAnalyses.objects.get(analyses='Effort vs Time')
+    for _, row in eff_v_time.iterrows():
+        for test in evt_tests:
+            test_obj, _ = TrendTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value):
+                continue
+                
+            TrendTestData.objects.get_or_create(
+                profile = athlete,
+                analyses = evt_analyses,
+                test = test_obj,
+                value = value
+            )
+            
+    # Performance vs Distance
+    perf_v_dist = pd.read_csv(athletes_data[athlete_string]['Performance vs Distance'])
+    pvd_tests = perf_v_dist.columns.difference(['Unnamed: 0'])
+    pvd_analyses = TrendAnalyses.objects.get(analyses='Performance vs Distance')
+    for _, row in perf_v_dist.iterrows():
+        for test in pvd_tests:
+            test_obj, _ = TrendTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value):
+                continue
+                
+            TrendTestData.objects.get_or_create(
+                profile = athlete,
+                analyses = pvd_analyses,
+                test = test_obj,
+                value = value
+            )
+    
+    # Drop % vs Distance
+    drop_v_dist = pd.read_csv(athletes_data[athlete_string]['Drop % vs Distance'])
+    dvd_tests = drop_v_dist.columns.difference(['Unnamed: 0'])
+    dvd_analyses = TrendAnalyses.objects.get(analyses='Drop % vs Distance')
+    for _, row in drop_v_dist.iterrows():
+        for test in dvd_tests:
+            test_obj, _ = TrendTest.objects.get_or_create(
+                test = test
+            )
+            value = row[test]
+            if pd.isna(value):
+                continue
+                
+            TrendTestData.objects.get_or_create(
+                profile = athlete,
+                analyses = dvd_analyses,
+                test = test_obj,
+                value = value
+            )
+    
+    
+    return redirect('ngoma:athlete', athlete_id)
