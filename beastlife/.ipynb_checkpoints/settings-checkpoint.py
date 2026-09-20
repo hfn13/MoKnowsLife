@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-abs_)x0tlmo&00lxs080s)3k0e@8xo#lzpwsf8=oi%tz!ealj*
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'moknowslife-production.up.railway.app',
+    '.up.railway.app',
     '127.0.0.1',
     'localhost'
 ]
