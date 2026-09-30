@@ -41,9 +41,6 @@ urlpatterns=[
     #Update Sub Menu
     path('update_submenu/<int:submenu_id>/', views.update_submenu, name='update_submenu'),
 
-    #Upload forms
-    path('upload/', views.upload_file, name='upload'),
-
     #Upload success
     path('upload_success/', views.upload_success, name='upload_success'),
 
@@ -53,10 +50,21 @@ urlpatterns=[
     #Athlete dashboard
     path('athletes/<int:athlete_id>/', views.athlete, name='athlete'),
 
+    # Update athlete data
+    path('update_athlete_profile/<int:athlete_id>/', views.update_athlete_profile, name='update_athlete_profile'),
+
+    
+
+    ### FORMS
+    #Upload forms
+    path('upload/', views.upload_file, name='upload'),
+
     #Add new athlete
     path('add_athlete/', views.new_athlete, name='add_athlete'),
 
-    # Update athlete data
-    path('update_athlete_profile/<int:athlete_id>/', views.update_athlete_profile, name='update_athlete_profile')
-   
+    #Add new workoutdrill
+    path('add_workoutdrill/<int:block_id>/', views.new_workoutdrill, name='add_workoutdrill'),
+
+    #Add new session
+    path('add_newsession/', views.new_session, name='add_session')
 ]

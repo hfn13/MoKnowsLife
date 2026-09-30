@@ -43,6 +43,7 @@ class WorkoutDrill(models.Model):
     distance = models.IntegerField(blank=True)
     duration = models.IntegerField(blank=True)
     prescription = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
     def __str__(self):
         return f'{self.name}'
 
@@ -76,11 +77,11 @@ class MenuSubCategory(models.Model):
 
 
 class Session(models.Model): 
-    session_type = models.ForeignKey(MenuCategory, null=True, on_delete=models.SET_NULL)
+    session_type = models.ManyToManyField(MenuCategory)
     date = models.DateField()
     time = models.TimeField(null=True,blank=True)
     location = models.CharField(max_length=100, blank=True)
-    #drills = models.ManyToManyField(TrainingDrill, blank=True)
+    drills = models.ManyToManyField(WorkoutDrill, blank=True)
 
     def __str__(self):
         return f'{self.date} {self.session_type} at {self.location}'
@@ -173,26 +174,30 @@ class TrendTestData(models.Model):
     profile = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
     analyses = models.ForeignKey(TrendAnalyses, on_delete=models.SET_NULL, null=True, blank=True)
     test = models.ForeignKey(TrendTest, on_delete=models.CASCADE)
-    date = models.DateField(blank=True, null=True)
+    date = models.DateField()
     value = models.DecimalField(max_digits=6, decimal_places=2)
-    
     
     def __str__(self):
         return f'{self.profile} {self.test}'
 
 
 class CISTI_score(models.Model):
-    test = models.OneToOneField(TrendTest, on_delete=models.SET_NULL, null=True)
-    consistency = models.DecimalField(max_digits=6, decimal_places=2)
-    intensity = models.DecimalField(max_digits=6, decimal_places=2)
-    speed = models.DecimalField(max_digits=6, decimal_places=2)
-    technique = models.DecimalField(max_digits=6, decimal_places=2)
-    intent = models.DecimalField(max_digits=6, decimal_places=2)
-    overall = models.DecimalField(max_digits=6, decimal_places=2)
+    CHOICES = [
+        ('C', 'Consistency'),
+        ('IN', 'Intensity'),
+        ('S', 'Speed'),
+        ('T', 'Technique'),
+        ('I', 'Intent'),
+        ('Overall', 'Overall')
+    ]
+    test = models.ForeignKey(TrendTestData, on_delete=models.CASCADE)
+    metric = models.CharField(choices=CHOICES)
+    score = models.DecimalField(max_digits=6, decimal_places=2)
+    notes = models.TextField(blank=True, null=True)
+    date = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return f'CISTI score: {self.overall}'
-
+        return f'{self.test} - {self.metric}'
 
 class Upload(models.Model):
     title = models.CharField(max_length=200)

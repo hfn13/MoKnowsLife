@@ -2,19 +2,41 @@
 {% block content %}
 {% load dict_extras %}
 
-<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-  <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
-  <label class="btn btn-outline-primary" for="btnradio1">Athlete Dashboard</label>
+<div class="d-flex justify-content-between align-items-center mb-3">
 
-  <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
-  <label class="btn btn-outline-primary" for="btnradio2">Trends</label>
+    <!-- Main Navigation (right side) -->
+    <div class="btn-group" role="group" aria-label="Main navigation button group">
 
-  <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-  <label class="btn btn-outline-primary" for="btnradio3">Review</label>
+        <!-- Athlete Dashboard -->
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+        <label class="btn btn-outline-primary" for="btnradio1" onclick="showSection('content1')">Athlete Dashboard</label>
 
-  <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
-  <label class="btn btn-outline-primary" for="btnradio4">Info</label>
+
+        <!-- Trends Dropdown (replaces Trends radio button) -->
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                Trends
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" onclick="showSection('content2')">Trends</a></li>
+                <li><a class="dropdown-item" onclick="showSection('content3')">CSTI Score</a></li>
+            </ul>
+            
+
+        </div>
+
+        <!-- Review -->
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+        <label class="btn btn-outline-primary" for="btnradio3" onclick="showSection('content4')">Review</label>
+
+        <!-- Info -->
+        <input type="radio" class="btn-check" name="btnradio" id="btnradio4" autocomplete="off">
+        <label class="btn btn-outline-primary" for="btnradio4" onclick="showSection('content5')">Info</label>
+
+    </div>
+
 </div>
+
 
 <a href="{% url 'ngoma:update_athlete_profile' athlete.id %}">Update Player Profile</a>
 <div id="content1" class="content-section">
@@ -147,23 +169,17 @@
     
 </div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+function showSection(id) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(
+        sec => sec.style.display = 'none'
+    );
 
-    const sections = {
-        btnradio1: document.getElementById("content1"),
-        btnradio2: document.getElementById("content2"),
-        btnradio3: document.getElementById("content3"),
-    };
-
-    document.querySelectorAll("input[name='btnradio']").forEach(radio => {
-        radio.addEventListener("change", function () {
-            Object.values(sections).forEach(sec => sec.style.display = "none");
-            sections[this.id].style.display = "block";
-        });
-    });
-
-});
+    // Show selected section
+    document.getElementById(id).style.display = 'block';
+}
 </script>
+
 
 
 {% endblock content %}

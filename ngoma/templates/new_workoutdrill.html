@@ -1,0 +1,10 @@
+{% block content %}
+
+<p>Add a new workout drill to {{drill_block}}</p>
+
+<form action="{% url 'ngoma:add_workoutdrill' drill_block.id %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">add workout drill</button>
+</form>
+{% endblock content %}

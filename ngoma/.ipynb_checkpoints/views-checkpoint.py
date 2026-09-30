@@ -2,16 +2,47 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTI_score, TrendTestData
 
+import calendar
+from calendar import HTMLCalendar
 from .forms import UploadForm,NewAthleteForm
+from ngoma.utils.calendar import WorkoutCalendar
 
 now = timezone.now()
 # Create your views here.
 
-
+## Home Page
 def ngoma_home(request):
     'Ngoma Fitness home.'
-    return render(request, 'ngoma_index.html')
 
+    current_month = now.month
+    current_year = now.year
+
+    events = {}
+    for session in Session.objects.all():
+        events.setdefault(session.date.isoformat(), []).append(session)
+
+    cal = WorkoutCalendar(events).formatmonth(current_year, current_month)
+
+    context = {
+        'year' : current_year,
+        'month' : current_month,
+        'cal' : cal
+    }
+    return render(request, 'ngoma_index.html', context)
+
+from django.http import JsonResponse
+
+def events_for_date(request, date):
+    events = Session.objects.filter(date=date)
+    data = {
+        'events': [{'name': e.name} for e in events]
+    }
+    return JsonResponse(data)
+
+
+## 
+
+## Workouts Page
 def workout_library(request):
     phases = PhaseChoice.objects.all()
     blocks = BlockChoice.objects.all()
@@ -26,6 +57,28 @@ def workout_library(request):
         'block_by_phase' : block_by_phase
     }
     return render(request, 'workout_library.html', context)
+
+def drill(request, drill_id):
+    drill = WorkoutDrill.objects.get(id = drill_id)
+    instances = {
+        'sets' : drill.sets,
+        'repetitions' : drill.repetitions,
+        'block' : drill.block,
+        'name' : drill.name,
+        'distance' : drill.distance,
+        'duration' : drill.duration,
+        'prescription' : drill.prescription,
+        'description' : drill.description
+    }
+
+    for name, instance in instances.items():
+        if instance is None:
+            instances[name] = 'Not Applicable (N/A)'
+
+    context = {
+        'drill' : drill,
+        'instances' : instances
+    }   
 
 def phase_view(request, phase_id):
     phase = PhaseChoice.objects.get(id=phase_id)
@@ -261,6 +314,9 @@ def update_submenu(request, submenu_id):
     return redirect('ngoma:menu_subcategory', submenu_id)
 
 
+
+### DASHBOARDS
+
 def athletes(request):
     athletes = ProfileData.objects.all()
 
@@ -402,7 +458,15 @@ athletes_data = {
                         'Consistency vs Distance':r"C:\Users\cex\Desktop\moknowslife\Consistency vs Distance.csv",
                         'Effort vs Time':r"C:\Users\cex\Desktop\moknowslife\Effort vs Time.csv",
                         'Performance vs Distance':r"C:\Users\cex\Desktop\moknowslife\Performance vs Distance.csv",
-                        'Drop % vs Distance':r"C:\Users\cex\Desktop\moknowslife\Drop % vs Distance.csv"
+                        'Drop % vs Distance':r"C:\Users\cex\Desktop\moknowslife\Drop % vs Distance.csv",
+                        '2 x 100m CISTI': r"C:\Users\cex\Desktop\moknowslife\2x100 CISTI.csv",
+                        '3 x 300m CISTI': r"C:\Users\cex\Desktop\moknowslife\3x300m CISTI.csv",
+                        '2 x 150m CISTI': r"C:\Users\cex\Desktop\moknowslife\2x150m CISTI.csv",
+                        '200m Breakdown CISTI': r"C:\Users\cex\Desktop\moknowslife\200m break CISTI.csv",
+                        '200m Split CISTI': r"C:\Users\cex\Desktop\moknowslife\200m Split CISTI.csv",
+                        '300m @85% CISTI': r"C:\Users\cex\Desktop\moknowslife\300m @85% CISTI.csv"
+                        
+                        
                        }
 }
 def update_athlete_profile(request, athlete_id):
@@ -469,68 +533,278 @@ def update_athlete_profile(request, athlete_id):
                 profile = athlete,
                 analyses = cvd_analyses,
                 test = test_obj,
+                date = pd.to_datetime(row['Date']).date(),
                 value = value
             )
     
-    # Effort vs Time
-    eff_v_time = pd.read_csv(athletes_data[athlete_string]['Effort vs Time'])
-    evt_tests = eff_v_time.columns.difference(['Unnamed: 0'])
-    evt_analyses = TrendAnalyses.objects.get(analyses='Effort vs Time')
-    for _, row in eff_v_time.iterrows():
-        for test in evt_tests:
-            test_obj, _ = TrendTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value):
-                continue
+    # # Effort vs Time
+    # eff_v_time = pd.read_csv(athletes_data[athlete_string]['Effort vs Time'])
+    # evt_tests = eff_v_time.columns.difference(['Unnamed: 0'])
+    # evt_analyses = TrendAnalyses.objects.get(analyses='Effort vs Time')
+    # for _, row in eff_v_time.iterrows():
+    #     for test in evt_tests:
+    #         test_obj, _ = TrendTest.objects.get_or_create(
+    #             test = test
+    #         )
+    #         value = row[test]
+    #         if pd.isna(value):
+    #             continue
                 
-            TrendTestData.objects.get_or_create(
-                profile = athlete,
-                analyses = evt_analyses,
-                test = test_obj,
-                value = value
-            )
+    #         TrendTestData.objects.get_or_create(
+    #             profile = athlete,
+    #             analyses = evt_analyses,
+    #             test = test_obj,
+    #             date= pd.to_datetime(row['Date']).date(),
+    #             value = value
+                
+    #         )
             
-    # Performance vs Distance
-    perf_v_dist = pd.read_csv(athletes_data[athlete_string]['Performance vs Distance'])
-    pvd_tests = perf_v_dist.columns.difference(['Unnamed: 0'])
-    pvd_analyses = TrendAnalyses.objects.get(analyses='Performance vs Distance')
-    for _, row in perf_v_dist.iterrows():
-        for test in pvd_tests:
-            test_obj, _ = TrendTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value):
-                continue
+    # # Performance vs Distance
+    # perf_v_dist = pd.read_csv(athletes_data[athlete_string]['Performance vs Distance'])
+    # pvd_tests = perf_v_dist.columns.difference(['Unnamed: 0'])
+    # pvd_analyses = TrendAnalyses.objects.get(analyses='Performance vs Distance')
+    # for _, row in perf_v_dist.iterrows():
+    #     for test in pvd_tests:
+    #         test_obj, _ = TrendTest.objects.get_or_create(
+    #             test = test
+    #         )
+    #         value = row[test]
+    #         if pd.isna(value):
+    #             continue
                 
-            TrendTestData.objects.get_or_create(
-                profile = athlete,
-                analyses = pvd_analyses,
-                test = test_obj,
-                value = value
-            )
-    
-    # Drop % vs Distance
-    drop_v_dist = pd.read_csv(athletes_data[athlete_string]['Drop % vs Distance'])
-    dvd_tests = drop_v_dist.columns.difference(['Unnamed: 0'])
-    dvd_analyses = TrendAnalyses.objects.get(analyses='Drop % vs Distance')
-    for _, row in drop_v_dist.iterrows():
-        for test in dvd_tests:
-            test_obj, _ = TrendTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value):
-                continue
+    #         TrendTestData.objects.get_or_create(
+    #             profile = athlete,
+    #             analyses = pvd_analyses,
+    #             test = test_obj,
+    #             date=row['Date'],
+    #             value = value
                 
-            TrendTestData.objects.get_or_create(
-                profile = athlete,
-                analyses = dvd_analyses,
-                test = test_obj,
-                value = value
-            )
+    #         )
     
-    
+    # # Drop % vs Distance
+    # drop_v_dist = pd.read_csv(athletes_data[athlete_string]['Drop % vs Distance'])
+    # dvd_tests = drop_v_dist.columns.difference(['Unnamed: 0'])
+    # dvd_analyses = TrendAnalyses.objects.get(analyses='Drop % vs Distance')
+    # for _, row in drop_v_dist.iterrows():
+    #     for test in dvd_tests:
+    #         test_obj, _ = TrendTest.objects.get_or_create(
+    #             test = test
+    #         )
+    #         value = row[test]
+    #         if pd.isna(value):
+    #             continue
+                
+    #         TrendTestData.objects.get_or_create(
+    #             profile = athlete,
+    #             analyses = dvd_analyses,
+    #             test = test_obj,
+    #             date=row['Date'],
+    #             value = value
+    #         )
+
+
+    ## CISTI Scores
+    METRIC_MAP = {
+    'Consistency': 'C',
+    'Intensity': 'IN',
+    'Speed': 'S',
+    'Technique': 'T',
+    'Intent': 'IT',
+    'Overall': 'O'
+}
+
+#     #2 x 100m CISTI
+#     CISTI_2x100m = pd.read_csv(athletes_data[athlete_string]['2 x 100m CISTI'])
+#     for _,row in CISTI_2x100m.iterrows():
+#         test_obj,_ = TrendTest.objects.get_or_create(
+#             test = '2 x 100m'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             analyses = None,
+#             test = test_obj,
+#             date = row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
+        
+#     #3 x 300m CISTI
+#     CISTI_3x300m = pd.read_csv(athletes_data[athlete_string]['3 x 300m CISTI'])
+#     for _,row in CISTI_3x300m.iterrows():
+#         test_obj,_ = TrendTest.objects.get_or_create(
+#             test = '3 x 300m'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             analyses = None,
+#             test = test_obj,
+#             date = row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
+        
+#     #2 X 150M CISTI
+#     CISTI_2x150m = pd.read_csv(athletes_data[athlete_string]['2 x 150m CISTI'])
+#     for _,row in CISTI_2x150m.iterrows():
+#         test_obj, _ = TrendTest.objects.get_or_create(
+#             test = '2 x 150m'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             analyses = None,
+#             test = test_obj,
+#             date = row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
+        
+#     #200m Breakdown CISTI
+#     CISTI_200mbreak = pd.read_csv(athletes_data[athlete_string]['200m Breakdown CISTI'])
+#     for _,row in CISTI_200mbreak.iterrows():
+#         test_obj, _ = TrendTest.objects.get_or_create(
+#             test = '200m Breakdown'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             analyses = None,
+#             test = test_obj,
+#             date = row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
+        
+#     #200m Split CISTI
+#     CISTI_200msplit = pd.read_csv(athletes_data[athlete_string]['200m Split CISTI'])
+#     for _,row in CISTI_200msplit.iterrows():
+#         test_obj,_ = TrendTest.objects.get_or_create(
+#             test = '200m Split'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             test = test_obj,
+#             date= row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
+        
+#     #300m @85% CISTI
+#     CISTI_300mat85 = pd.read_csv(athletes_data[athlete_string]['300m @85% CISTI'])
+#     for _,row in CISTI_300mat85.iterrows():
+#         test_obj,_ = TrendTest.objects.get_or_create(
+#             test = '300m @ 85%'
+#         )
+#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
+#             profile = athlete,
+#             analyses = None,
+#             test = test_obj,
+#             date = row['Date'],
+#             value = float(0)
+            
+#         )
+#         CISTI_score.objects.get_or_create(
+#             test = profile_test_obj,
+#             metric = METRIC_MAP[row['Metric']],
+#             score = float(row['Score']),
+#             notes = row['Notes'],
+#             date = row['Date']
+#         )
     return redirect('ngoma:athlete', athlete_id)
+
+
+###  FORMS
+from ngoma.forms import NewWorkoutDrillForm, NewSessionForm
+
+
+def forms_display(request):
+    forms = Upload.objects.all()
+
+    context = {
+        'forms' : forms
+    }
+    return render(request, 'forms_display.html', context)
+
+
+def new_athlete(request):
+    if request.method == 'POST':
+        form = NewAthleteForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('ngoma:athletes')
+    else:
+        form = NewAthleteForm()
+
+    return render(request, 'newathlete.html', {'form': form})
+
+
+def new_workoutdrill(request, block_id):
+    drill_block = BlockChoice.objects.get(id = block_id)
+    if request.method == 'POST':
+        form = NewWorkoutDrillForm(request.POST)
+        if form.is_valid():
+            drill = form.save(commit=False)
+            drill.block = drill_block
+            form.save()
+            return redirect('ngoma:workout_library')
+
+    else:
+        form = NewWorkoutDrillForm()
+
+
+    context = {
+        'drill_block' : drill_block,
+        'form' : form
+    }
+    return render(request, 'new_workoutdrill.html', context)
+
+
+def new_session(request):
+    if request.method == 'POST':
+        form = NewSessionForm
+        if form.is_valid():
+            form.save()
+            return redirect('ngoma:ngoma_home')
+
+    else:
+        form = NewSessionForm()
+
+    context = {
+        
+        'form' : form
+    }
+
+    return render(request, 'new_session.html', context)
