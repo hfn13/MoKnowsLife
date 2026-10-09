@@ -1,0 +1,9 @@
+{% block content %}
+<h1>New Macrocycle</h1>
+
+<form action="{% url 'ngoma:new_macrocycle' %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">add new macrocycle</button>
+</form>
+{% endblock content %}

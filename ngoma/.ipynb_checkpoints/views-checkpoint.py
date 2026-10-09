@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
-from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTI_score, TrendTestData
-
+from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTIScore, TrendTestData, Macrocycle, ProfileMacrocycle, ClientCategory, Status, TrainingWeek, WorkoutCategory
+from django.http import JsonResponse
 import calendar
 from calendar import HTMLCalendar
 from .forms import UploadForm,NewAthleteForm
@@ -11,26 +11,40 @@ now = timezone.now()
 # Create your views here.
 
 ## Home Page
-def ngoma_home(request):
-    'Ngoma Fitness home.'
+from datetime import date
+from ngoma.utils.calendar import WorkoutCalendar
 
-    current_month = now.month
-    current_year = now.year
+def ngoma_index(request):
+    today = date.today()
 
+    # Read month/year from query parameters
+    year = int(request.GET.get("year", today.year))
+    month = int(request.GET.get("month", today.month))
+
+    # Build event dictionary
     events = {}
     for session in Session.objects.all():
         events.setdefault(session.date.isoformat(), []).append(session)
 
-    cal = WorkoutCalendar(events).formatmonth(current_year, current_month)
+    cal = WorkoutCalendar(events).formatmonth(year, month)
 
-    context = {
-        'year' : current_year,
-        'month' : current_month,
-        'cal' : cal
-    }
-    return render(request, 'ngoma_index.html', context)
+    # Calculate previous/next month
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
 
-from django.http import JsonResponse
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
+
+    return render(request, "ngoma_index.html", {
+        "cal": cal,
+        "year": year,
+        "month": month,
+        "prev_year": prev_year,
+        "prev_month": prev_month,
+        "next_year": next_year,
+        "next_month": next_month,
+    })
+
 
 def events_for_date(request, date):
     events = Session.objects.filter(date=date)
@@ -43,6 +57,7 @@ def events_for_date(request, date):
 ## 
 
 ## Workouts Page
+
 def workout_library(request):
     phases = PhaseChoice.objects.all()
     blocks = BlockChoice.objects.all()
@@ -157,18 +172,21 @@ def menusubcategory(request, subcat_id):
     return render(request, 'menu_subcategory.html', context)
 
 
-# def athletes(request):
-#     'List of signed up athletes'
-#     return render(request, 'athletes.html')
+def tests_display(request):
+    tests = TestName.objects.all()
 
-# def athlete(request, athlete_id):
-#     'Athlete Dashboard to track progress'
-#     athlete = ProfileData.objects.get(id=athlete_id)
+    context = {
+        'tests' : tests
+    }
+    return render(request, 'test_display.html', context)
 
-#     context = {
-#         'athlete' : athlete
-#     }
-#     return render(request, 'athlete.html', context)
+def test_display(request, test_id):
+    test = TestName.objects.get(id=test_id)
+
+    context = {
+        'test' : test
+    }
+    return render(request, 'test_display.html', context)
 
 def forms_display(request):
     forms = Upload.objects.all()
@@ -316,6 +334,75 @@ def update_submenu(request, submenu_id):
 
 
 ### DASHBOARDS
+from django.utils.timezone import now
+
+def ngoma_dashboard(request):
+    macrocycles = Macrocycle.objects.all()
+    sessions = Session.objects.all()
+
+    today = now().date()
+
+    current_macrocycles = []
+    ended_macrocycles = []
+
+    for macrocycle in macrocycles:
+        if macrocycle.end_date > today:
+            current_macrocycles.append(macrocycle)
+        else:
+            ended_macrocycles.append(macrocycle)
+
+    upcoming_sessions = []
+    past_sessions = []
+
+    for session in sessions:
+        if session.date.date() > today:
+            upcoming_sessions.append(session)
+        else:
+            past_sessions.append(session)
+
+    context = {
+        'macrocycles': macrocycles,
+        'current_macrocycles': current_macrocycles,
+        'ended_macrocycles': ended_macrocycles,
+        'upcoming_sessions': upcoming_sessions,
+        'past_sessions': past_sessions,
+        'date' : today
+    }
+
+    return render(request, 'ngoma_dashboard.html', context)
+
+
+    
+def macrocycle(request, macrocycle_id):
+    macrocycle = Macrocycle.objects.get(id=macrocycle_id)
+    profiles = ProfileMacrocycle.objects.filter(macrocycle = macrocycle)
+
+    def generate_training_weeks(profile_macrocycle):
+        mc = profile_macrocycle.macrocycle  # Macrocycle object
+    
+        start = mc.start_date
+        weeks = mc.estimated_weeks
+    
+        for week in range(1, int(weeks)):
+            TrainingWeek.objects.update_or_create(
+                macrocycle = profile_macrocycle,
+                week_number = week
+            )
+            
+    
+    context = {
+        'macrocycle' : macrocycle,
+        'profiles' : profiles
+    }
+    return render(request, 'macrocycle.html', context)
+
+def session(request, session_id):
+    session = Session.objects.get(id=session_id)
+
+    context = {
+        'session' : session
+    }
+    return render(request, 'session.html', context)
 
 def athletes(request):
     athletes = ProfileData.objects.all()
@@ -329,116 +416,171 @@ def athletes(request):
 def athlete(request, athlete_id):
     #Athlete Dashboard
     from datetime import date
+    
     athlete = ProfileData.objects.get(id=athlete_id)
+    category = athlete.client_category
+    availability = athlete.status
+    image = athlete.image
     today = date.today()
 
     age = today.year - athlete.DOB.year - (
         (today.month, today.day) < (athlete.DOB.month, athlete.DOB.day)
     )
+    macrocycles = ProfileMacrocycle.objects.filter(profile=athlete).order_by('-macrocycle__start_date')
+
+    selected_id = request.GET.get("macrocycle_id")
     
-    
-    track_data = TrackTestData.objects.filter(profile=athlete)
-    track_tests = TrackTest.objects.all()
-    lift_data = LiftTestData.objects.filter(profile=athlete)
-    lift_tests = LiftTest.objects.all()
-
-    track_summary = {}
-
-    for test in track_tests:
-        test_results = track_data.filter(test=test).order_by('date')
-
-        if test_results.exists():
-            values = [d.value for d in test_results]
-
-            track_summary[test] = {
-                'fastest': min(values),
-                'slowest': max(values),
-                'latest': test_results.last().value
-            }
+    # CASE 1: Athlete has no macrocycles at all
+    if not macrocycles.exists():
+        macrocycle = None
+        macrocycle_obj = None
+        season_phase = None
+        program_phase = None
+        training_weeks = None
+        
+    else:
+        # CASE 2: Athlete selected a macrocycle
+        if selected_id:
+            try:
+                macrocycle = ProfileMacrocycle.objects.get(id=selected_id, profile=athlete)
+            except ProfileMacrocycle.DoesNotExist:
+                macrocycle = macrocycles.first()
         else:
-            track_summary[test] = {
-                'fastest': 0,
-                'slowest': 0,
-                'latest': 0
-            }
+            # CASE 3: Default to latest macrocycle
+            macrocycle = macrocycles.first()
+    
+        macrocycle_obj = macrocycle.macrocycle
+
+        season_phase = macrocycle.season_phase
+        program_phase = macrocycle.program_phase
+        training_weeks = macrocycle.macrocycle.estimated_weeks
+        
+        
+   
+    # track_data = TrackTestData.objects.filter(profile=athlete)
+    # track_tests = TrackTest.objects.all()
+    # lift_data = LiftTestData.objects.filter(profile=athlete)
+    # lift_tests = LiftTest.objects.all()
+
+    # track_summary = {}
+
+    # for test in track_tests:
+    #     test_results = track_data.filter(test=test).order_by('date')
+
+    #     if test_results.exists():
+    #         values = [d.value for d in test_results]
+
+    #         track_summary[test] = {
+    #             'fastest': min(values),
+    #             'slowest': max(values),
+    #             'latest': test_results.last().value
+    #         }
+    #     else:
+    #         track_summary[test] = {
+    #             'fastest': 0,
+    #             'slowest': 0,
+    #             'latest': 0
+    #         }
     
 
-    lift_summary = {}
+    # lift_summary = {}
 
-    for test in lift_tests:
-        test_results = lift_data.filter(test=test).order_by('date')
+    # for test in lift_tests:
+    #     test_results = lift_data.filter(test=test).order_by('date')
 
-        if test_results.exists():
-            values = [d.value for d in test_results]
+    #     if test_results.exists():
+    #         values = [d.value for d in test_results]
 
-            lift_summary[test] = {
-                'fastest': min(values),
-                'slowest': max(values),
-                'latest': test_results.last().value
-            }
-        else:
-            lift_summary[test] = {
-                'fastest': 0,
-                'slowest': 0,
-                'latest': 0
-            }
+    #         lift_summary[test] = {
+    #             'fastest': min(values),
+    #             'slowest': max(values),
+    #             'latest': test_results.last().value
+    #         }
+    #     else:
+    #         lift_summary[test] = {
+    #             'fastest': 0,
+    #             'slowest': 0,
+    #             'latest': 0
+    #         }
 
-    #Trends
-    trend_analyses = TrendAnalyses.objects.all()
-    trend_tests = TrendTestData.objects.filter(profile=athlete)
+    # #Trends
+    # trend_analyses = TrendAnalyses.objects.all()
+    # trend_tests = TrendTestData.objects.filter(profile=athlete)
     
-    trend_tables = {}
+    # trend_tables = {}
     
-    for analyses in trend_analyses:
-        analyses_tests = trend_tests.filter(analyses=analyses).order_by('date')
+    # for analyses in trend_analyses:
+    #     analyses_tests = trend_tests.filter(analyses=analyses).order_by('date')
     
-        # Extract unique test names
-        test_names = list(
-            analyses_tests.values_list('test__test', flat=True).distinct()
-        )
+    #     # Extract unique test names
+    #     test_names = list(
+    #         analyses_tests.values_list('test__test', flat=True).distinct()
+    #     )
     
-        # Extract unique dates
-        dates = list(
-            analyses_tests.values_list('date', flat=True).distinct()
-        )
+    #     # Extract unique dates
+    #     dates = list(
+    #         analyses_tests.values_list('date', flat=True).distinct()
+    #     )
     
-        # Build table rows
-        rows = []
-        for date in dates:
-            row = {'date': date, 'values': []}
+    #     # Build table rows
+    #     rows = []
+    #     for date in dates:
+    #         row = {'date': date, 'values': []}
     
-            for test_name in test_names:
-                value_obj = analyses_tests.filter(
-                    date=date,
-                    test__test=test_name
-                ).first()
+    #         for test_name in test_names:
+    #             value_obj = analyses_tests.filter(
+    #                 date=date,
+    #                 test__test=test_name
+    #             ).first()
     
-                row['values'].append(value_obj.value if value_obj else '')
+    #             row['values'].append(value_obj.value if value_obj else '')
     
-            rows.append(row)
+    #         rows.append(row)
     
-        trend_tables[analyses.analyses] = {
-            'tests': test_names,
-            'rows': rows
-        }
+    #     trend_tables[analyses.analyses] = {
+    #         'tests': test_names,
+    #         'rows': rows
+    #     }
 
     context = {
+        
         'athlete' : athlete,
         'age' : age,
-        'track_tests':track_tests,
-        'track_data' : track_data,
-        'track_summary':track_summary,
-        'lift_tests':lift_tests,
-        'lift_data' : lift_data,
-        'lift_summary':lift_summary,
-        'trend_analyses':trend_analyses,
-        'trend_tests':trend_tests,
-        'trend_tables':trend_tables
+        'image' : image,
+        'category' : category,
+        'availability' : availability,
+        'macrocycles' : macrocycles,
+        'macrocycle' : macrocycle,
+        'season_phase' : season_phase,
+        'program_phase' : program_phase,
+        'training_weeks' : training_weeks
+        # 'track_tests':track_tests,
+        # 'track_data' : track_data,
+        # 'track_summary':track_summary,
+        # 'lift_tests':lift_tests,
+        # 'lift_data' : lift_data,
+        # 'lift_summary':lift_summary,
+        # 'trend_analyses':trend_analyses,
+        # 'trend_tests':trend_tests,
+        # 'trend_tables':trend_tables,
+        
     }
 
     return render(request, 'athlete.html', context)
 
+def profile_macrocycle(request, profile_id, macrocycle_id):
+    macrocycle_obj = Macrocycle.objects.get(id=macrocycle_id)
+    profile = ProfileData.objects.get(id=profile_id)
+    macrocycle = ProfileMacrocycle.objects.get(macrocycle=macrocycle_obj, profile=profile)
 
+
+    
+    context = {
+        'profile' : profile,
+        'macrocycle' : macrocycle
+    }
+    return render(request, 'profile_macrocycle.html', context)
+    
 def new_athlete(request):
     if request.method == 'POST':
         form = NewAthleteForm(request.POST, request.FILES)
@@ -747,7 +889,7 @@ def update_athlete_profile(request, athlete_id):
 
 
 ###  FORMS
-from ngoma.forms import NewWorkoutDrillForm, NewSessionForm
+from ngoma.forms import NewWorkoutDrillForm, NewSessionForm, NewMacrocycleForm, NewProfileMacrocycleForm, NewTestForm, NewTrainingThemeForm, NewTrainingBlockForm, NewMenuCategoryForm, NewMenuSubCategory
 
 
 def forms_display(request):
@@ -794,10 +936,10 @@ def new_workoutdrill(request, block_id):
 
 def new_session(request):
     if request.method == 'POST':
-        form = NewSessionForm
+        form = NewSessionForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('ngoma:ngoma_home')
+            return redirect('ngoma:ngoma_dashboard')
 
     else:
         form = NewSessionForm()
@@ -808,3 +950,95 @@ def new_session(request):
     }
 
     return render(request, 'new_session.html', context)
+
+def new_macrocycle(request):
+    if request.method == 'POST':
+        form = NewMacrocycleForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+            
+            return redirect('ngoma:ngoma_dashboard')
+
+    else:
+        form = NewMacrocycleForm()
+
+    context = {
+        
+        'form' : form
+    }
+
+    return render(request, 'new_macrocycle.html', context)
+
+def new_profilemacrocycle(request, athlete_id):
+    def generate_training_weeks(profile_macrocycle):
+            mc = profile_macrocycle.macrocycle  # Macrocycle object
+        
+            start = mc.start_date
+            weeks = mc.estimated_weeks
+
+            for week in range(1, int(weeks) + 1):
+                TrainingWeek.objects.update_or_create(
+                    macrocycle = profile_macrocycle,
+                    week_number = week
+                )
+            
+    athlete = ProfileData.objects.get(id=athlete_id)
+    if request.method == 'POST':
+        form = NewProfileMacrocycleForm(request.POST)
+        
+        if form.is_valid():
+            macrocycle_form = form.save(commit=False)
+            macrocycle_form.profile = athlete
+            macrocycle_form.save()
+
+            generate_training_weeks(macrocycle_form)
+            
+            return redirect('ngoma:athlete', athlete_id)
+
+    else:
+        form = NewProfileMacrocycleForm()
+
+    context = {
+        
+        'form' : form
+    }
+
+    return render(request, 'new_macrocycle.html', context)
+
+def new_trainingtheme(request, macrocycle_id):
+    macrocycle = ProfileMacrocycle.objects.get(id=macrocycle_id)
+    if request.method == 'POST':
+        form = NewTrainingThemeForm(request.POST)
+        if form.is_valid():
+            trainingtheme_form = form.save(commit=False)
+            trainingtheme_form.macrocycle = macrocycle
+            form.save()
+            return redirect('ngoma:ngoma_home')
+
+    else:
+        form = NewTrainingThemeForm()
+
+    context = {
+        
+        'form' : form
+    }
+
+    return render(request, 'new_macrocycle.html', context)
+
+def new_test(request):
+    if request.method == 'POST':
+        form = NewTestForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ngoma:tests_display')
+
+    else:
+        form = NewTestForm()
+
+    context = {
+        
+        'form' : form
+    }
+
+    return render(request, 'new_test.html', context)

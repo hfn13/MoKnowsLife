@@ -1,0 +1,80 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h1>Admin Dashboard</h1>
+<h3>
+    <em>{{ date }}</em>
+</h3>
+
+<h2>Macrocycles</h2>
+<a href="{% url 'ngoma:new_macrocycle' %}">Create New Macrocycle</a>
+<table class="table">
+    <thead>
+        <th>
+            <h4>
+                <strong>Ongoing macrocycles</strong>
+            </h4>
+        </th>
+        <th>
+            <h4>
+                <strong>Previous macrocycles</strong>
+            </h4>
+        </th>
+    </thead>
+    <tbody>
+        
+        <tr>
+            {% for macrocycle in current_macrocycle %}
+                <td> {{macrocycle}} </td>
+            {% empty %}
+                <td> No macrocycles have been created </td>
+            {% endfor %}
+            
+            {% for macrocycle in ended_macrocycle %}
+                <td> {{macrocycle}} </td>
+            {% empty %}
+                <td> No macrocycles have been created </td>
+            {% endfor %}
+        </tr>
+        
+        
+    </tbody>
+</table>
+
+
+<h2>Training Sessions</h2>
+<a href="{% url 'ngoma:new_session' %}">Create new training session</a>
+<table class="table">
+    <thead>
+        <th>
+            <h4>
+                <strong>Upcoming Sessions</strong>
+            </h4>
+        </th>
+        <th>
+            <h4>
+                <strong>Previous Sessions</strong>
+            </h4>
+        </th>
+    </thead>
+    <tbody>
+        
+        <tr>
+            {% for session in upcoming_sessions %}
+                <td> {{ session }} </td>
+            {% empty %}
+                <td> No sessions have been created </td>
+            {% endfor %}
+
+            {% for session in past_sessions %}
+                <td> {{ session }} </td>
+            {% empty %}
+                <td> No sessions have been created </td>
+            {% endfor %}
+        </tr>
+        
+    
+    </tbody>
+</table>
+
+{% endblock content %}

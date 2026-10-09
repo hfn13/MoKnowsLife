@@ -6,19 +6,27 @@ app_name = 'ngoma'
 
 urlpatterns=[
     # Home Page
-    path('ngoma_index/', views.ngoma_home, name='ngoma_home'),
+    path('ngoma_index/', views.ngoma_index, name='ngoma_index'),
 
     path('events/<str:date>/', views.events_for_date, name='events_for_date'),
 
+    ### DASHBOARDS
     # List of Athletes
     path('athletes/', views.athletes, name='athletes'),
 
-    #Athlete dashboard
+    # Athlete dashboard
     path('athletes/<int:athlete_id>/', views.athlete, name='athlete'),
 
-    #Forms
-    path('consent_forms/', views.forms_display, name='forms_display'),
+    # Admin / Coach Dashboard
+    path('ngoma_dashboard/', views.ngoma_dashboard, name='ngoma_dashboard'),
 
+    # Macrocycle page
+    #path(),
+
+    # Session Page
+    #path(),
+
+    ### WORKOUT PAGES
     #Workout library
     path('workout_library/', views.workout_library, name='workout_library'),
 
@@ -46,12 +54,7 @@ urlpatterns=[
     #Upload success
     path('upload_success/', views.upload_success, name='upload_success'),
 
-    #Athletes
-    path('athletes/', views.athletes, name = 'athletes'),
-
-    #Athlete dashboard
-    path('athletes/<int:athlete_id>/', views.athlete, name='athlete'),
-
+    
     # Update athlete data
     path('update_athlete_profile/<int:athlete_id>/', views.update_athlete_profile, name='update_athlete_profile'),
 
@@ -60,13 +63,20 @@ urlpatterns=[
     ### FORMS
     #Upload forms
     path('upload/', views.upload_file, name='upload'),
+    
+    # Consent Forms
+    path('consent_forms/', views.forms_display, name='forms_display'),
 
-    #Add new athlete
+    # Add new athlete
     path('add_athlete/', views.new_athlete, name='add_athlete'),
 
-    #Add new workoutdrill
+    # Add new workoutdrill
     path('add_workoutdrill/<int:block_id>/', views.new_workoutdrill, name='add_workoutdrill'),
 
-    #Add new session
-    path('add_newsession/', views.new_session, name='add_session')
+    # Add new session
+    path('add_newsession/', views.new_session, name='new_session'),
+
+    # Add new macrocycle
+    path('add_macrocycle/', views.new_macrocycle, name='new_macrocycle'),
+
 ]

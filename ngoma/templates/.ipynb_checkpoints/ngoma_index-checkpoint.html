@@ -7,13 +7,52 @@
 
     </br></br>
 
-    <table>
+    <div class="calendar-nav">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">← Previous</a>
+        <span class="current-month">{{ month }}/{{ year }}</span>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn">Next →</a>
+    </div>
+    
+    <div class="calendar-wrapper">
         {{ cal|safe }}
-    </table>
+    </div>
+    
+    <div id="event-panel"></div>
+
     
 </center>
 
 
+<div id="event-panel"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const days = document.querySelectorAll(".day");
+
+    days.forEach(day => {
+        day.addEventListener("click", function() {
+            const selectedDate = this.dataset.date;
+
+            fetch(`/ngoma/events/${selectedDate}/`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = `<h3>Events on ${selectedDate}</h3>`;
+                    if (data.events.length === 0) {
+                        html += "<p>No events scheduled.</p>";
+                    } else {
+                        html += "<ul>";
+                        data.events.forEach(ev => {
+                            html += `<li>${ev.name}</li>`;
+                        });
+                        html += "</ul>";
+                    }
+
+                    document.getElementById("event-panel").innerHTML = html;
+                });
+        });
+    });
+});
+</script>
 
 
 {% endblock content %}

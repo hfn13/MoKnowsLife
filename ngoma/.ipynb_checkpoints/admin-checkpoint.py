@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill,Upload,MenuCategory,MenuSubCategory,BlockChoice,PhaseChoice,MenuOption,TrendAnalyses,TrendTest,CISTI_score,TrendTestData
+from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill,Upload,MenuCategory,MenuSubCategory,BlockChoice,PhaseChoice,MenuOption,TrendAnalyses,TrendTest,TrendTestData, CISTIScore, ClientCategory, Status, WorkoutCategory, Macrocycle, SeasonPhase, TrainingTheme, TrainingBlock, TrainingWeek, ProfileMacrocycle, TestQuality, TestName
 
 # Register your models here.
 admin.site.register(ProfileData)
@@ -19,5 +19,16 @@ admin.site.register(PhaseChoice)
 admin.site.register(MenuOption)
 admin.site.register(TrendAnalyses)
 admin.site.register(TrendTest)
-admin.site.register(CISTI_score)
+admin.site.register(CISTIScore)
 admin.site.register(TrendTestData)
+admin.site.register(ClientCategory)
+admin.site.register(Status)
+admin.site.register(WorkoutCategory)
+admin.site.register(Macrocycle)
+admin.site.register(SeasonPhase)
+admin.site.register(TrainingTheme)
+admin.site.register(TrainingBlock)
+admin.site.register(TrainingWeek)
+admin.site.register(ProfileMacrocycle)
+admin.site.register(TestQuality)
+admin.site.register(TestName)

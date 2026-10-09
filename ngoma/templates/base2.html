@@ -8,6 +8,43 @@
     <title>Ngoma Fitness</title>
 
     <style>
+    /* Calendar navigation */
+    .calendar-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        font-size: 1.3rem;
+    }
+    
+    .nav-btn {
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+    
+    .nav-btn:hover {
+        background: #0056b3;
+    }
+    
+    /* Event dots */
+    .event-dots {
+        margin-top: 4px;
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+    }
+    
+    .event-dot {
+        width: 6px;
+        height: 6px;
+        background: #ff5722;
+        border-radius: 50%;
+    }
+    
+    /* Calendar styling */
     .calendar-wrapper table {
         width: 100%;
         font-size: 1.2rem;
@@ -16,12 +53,13 @@
     .calendar-wrapper td.day {
         cursor: pointer;
         padding: 10px;
-        transition: background 0.2s;
+        vertical-align: top;
     }
     
     .calendar-wrapper td.day:hover {
         background: #e0f0ff;
     }
+
     </style>
 
 
@@ -32,7 +70,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container">
 
-    <a class="navbar-brand" href="{% url 'ngoma:ngoma_home' %}">Home</a>
+    <a class="navbar-brand" href="{% url 'ngoma:ngoma_index' %}">Home</a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
@@ -62,6 +100,15 @@
           </a>
         </li>
 
+        <!-- NEWSLETTER PAGE -->
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'ngoma:ngoma_dashboard' %}">
+            Admin Dashboard
+          </a>
+        </li>
+
+
+          
        <button class="btn btn-outline-secondary"
                type="button"
                data-bs-toggle="offcanvas"

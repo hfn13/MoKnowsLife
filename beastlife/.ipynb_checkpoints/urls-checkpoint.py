@@ -25,6 +25,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     #path('platform1/', include('platform1.urls', namespace='Platform1')),
-    path('', views.ngoma_home, name='home'),
+    path('', views.ngoma_index, name='home'),
     path('ngoma/', include(('ngoma.urls', 'ngoma'), namespace='ngoma'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

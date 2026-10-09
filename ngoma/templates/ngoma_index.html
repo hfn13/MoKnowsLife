@@ -7,9 +7,18 @@
 
     </br></br>
 
+    <div class="calendar-nav">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">← Previous</a>
+        <span class="current-month">{{ month }}/{{ year }}</span>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="nav-btn">Next →</a>
+    </div>
+    
     <div class="calendar-wrapper">
         {{ cal|safe }}
     </div>
+    
+    <div id="event-panel"></div>
+
     
 </center>
 

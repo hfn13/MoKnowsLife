@@ -2,6 +2,28 @@
 {% block content %}
 {% load dict_extras %}
 
+{% if image %}
+    <img src="{{ player.image.url }}" class="card-img-top" alt="{{ player }}">
+{% else %}
+    <img src="https://via.placeholder.com/300x200?text={{ player.first_name }}" 
+         class="card-img-top" 
+         alt="{{ player }}">
+{% endif %}
+<h1> {{ athlete }} </h1>
+<h3>
+    <em>{{ category }}</em>
+</h3>
+
+<form method="GET">
+    <select name="macrocycle_id" onchange="this.form.submit()">
+        {% for m in macrocycles %}
+            <option value="{{ m.id }}" {% if m.id == macrocycle.id %}selected{% endif %}>
+                {{ m.macrocycle.name }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
 
     <!-- Main Navigation (right side) -->
@@ -15,11 +37,12 @@
         <!-- Trends Dropdown (replaces Trends radio button) -->
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                Trends
+                Tests and Trends
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" onclick="showSection('content2')">Trends</a></li>
-                <li><a class="dropdown-item" onclick="showSection('content3')">CSTI Score</a></li>
+                <li><a class="dropdown-item" onclick="showSection('content2')">Tests</a></li>
+                <li><a class="dropdown-item" onclick="showSection('content3')">Trends</a></li>
+                <li><a class="dropdown-item" onclick="showSection('content4')">CSTI Score</a></li>
             </ul>
             
 
@@ -39,25 +62,112 @@
 
 
 <a href="{% url 'ngoma:update_athlete_profile' athlete.id %}">Update Player Profile</a>
+{% if macrocycle %}
 <div id="content1" class="content-section">
-    <h3> 
-        <strong>Name:</strong> {{ athlete }}
-    </h3>
-    <h3> 
-        <strong>Age:</strong> {{ age }}
-    </h3>
-    <h3> 
-        <strong>Weight:</strong> {{ athlete.weight }} kgs
-    </h3>
-    <h3> 
-        <strong>Height:</strong> {{ athlete.height }} cm
-    </h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <h4> 
+                        <strong>Name:</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ athlete }}
+                </td>
+            </tr>
     
-    <h2>Track Test</h2>
+            <tr>
+                <td>
+                    <h4> 
+                        <strong>Age:</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ age }}
+                </td>
+            </tr>
     
+            <tr>
+                <td>
+                    <h4> 
+                        <strong>Weight:</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ athlete.weight }} kgs
+                </td>
+            </tr>
     
+            <tr>
+                <td>
+                    <h4> 
+                        <strong>Height:</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ athlete.height }} cm
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <h4>
+                        <strong>Season Phase</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ season_phase }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <h4>
+                        <strong>Program Phase</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ program_phase }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <h4>
+                        <strong>Training Week</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ current_week }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <h4>
+                        <strong>Status</strong>
+                    </h4>
+                </td>
+                <td style="text-align:right">
+                    {{ availability }}
+                </td>
+            </tr>
+        </tbody>
+        
+    </table>
     
-    
+</div>   
+
+ 
+<div id="content2" class="content-section" style="display:none;">
+    <!-- <h2>Track Test</h2>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -90,10 +200,10 @@
                 {% endfor %}
             </tr>
         </tbody>
-    </table>
+    </table> -->
     
     
-    <h2>Lift Test</h2>
+    <!-- <h2>Lift Test</h2>
     
     <table class="table table-bordered">
         <thead>
@@ -129,9 +239,9 @@
         </tbody>
     </table>
    
-</div>
 
-<div id="content2" class="content-section" style="display:none;">
+
+
     {% for analysis_name, table in trend_tables.items %}
         <h2>{{ analysis_name }}</h2>
     
@@ -156,7 +266,7 @@
                 {% endfor %}
             </tbody>
         </table>
-    {% endfor %}
+    {% endfor %} -->
 
 
 </div>
@@ -180,6 +290,98 @@ function showSection(id) {
 }
 </script>
 
-
-
+{% else %}
+    <div id="content1" class="content-section">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <h4> 
+                            <strong>Name:</strong>
+                        </h4>
+                    </td>
+                    <td style="text-align:right">
+                        {{ athlete }}
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <h4> 
+                            <strong>Age:</strong>
+                        </h4>
+                    </td>
+                    <td style="text-align:right">
+                        {{ age }}
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <h4> 
+                            <strong>Weight:</strong>
+                        </h4>
+                    </td>
+                    <td style="text-align:right">
+                        {{ athlete.weight }} kgs
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <h4> 
+                            <strong>Height:</strong>
+                        </h4>
+                    </td>
+                    <td style="text-align:right">
+                        {{ athlete.height }} cm
+                    </td>
+                </tr>
+    
+                <tr>
+                    <td>
+                        <h4>
+                            <strong>Status</strong>
+                        </h4>
+                    </td>
+                    <td style="text-align:right">
+                        {{ availability }}
+                    </td>
+                </tr>
+            </tbody>
+            
+        </table>
+        
+        
+        
+        <p>No macrocycle assigned yet</p>
+        
+    </div>   
+    <div id="content2" class="content-section" style="display:none;">
+        <p>No macrocycle assigned yet.</p>
+    </div>
+    <div id="content3" class="content-section" style="display:none;">
+        <p>No macrocycle assigned yet.</p>
+    </div>
+    <div id="content4" class="content-section" style="display:none;">
+        <p>No macrocycle assigned yet.</p>
+    </div>
+    <script>
+    function showSection(id) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(
+            sec => sec.style.display = 'none'
+        );
+    
+        // Show selected section
+        document.getElementById(id).style.display = 'block';
+    }
+    </script>
+{% endif %}
 {% endblock content %}

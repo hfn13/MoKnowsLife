@@ -1,0 +1,5 @@
+<form action="{% url 'ngoma:new_session' %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">add workout drill</button>
+</form>
