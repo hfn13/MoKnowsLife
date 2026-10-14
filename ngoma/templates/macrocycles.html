@@ -1,0 +1,16 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h1>Macrocycles</h1>
+
+<ul>
+    {% for macrocycle in macrocycles %}
+    <li>
+        <a href="{% url 'ngoma:macrocycle' macrocycle.id %}">{{ macrocycle }}</a>
+    </li>
+    {% empty %}
+    <p>No macrocycles have been added</p>
+    {% endfor %}
+</ul>
+
+{% endblock content %}

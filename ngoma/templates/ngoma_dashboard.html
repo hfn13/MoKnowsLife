@@ -25,13 +25,17 @@
         
         <tr>
             {% for macrocycle in current_macrocycle %}
-                <td> {{macrocycle}} </td>
+                <td> 
+                    <a href="{% url 'ngoma:macrocycle' macrocycle.id %}">{{macrocycle}}</a> 
+                </td>
             {% empty %}
                 <td> No macrocycles have been created </td>
             {% endfor %}
             
             {% for macrocycle in ended_macrocycle %}
-                <td> {{macrocycle}} </td>
+                <td>
+                    <a href="{% url 'ngoma:macrocycle' macrocycle.id %}">{{macrocycle}}</a> 
+                </td>
             {% empty %}
                 <td> No macrocycles have been created </td>
             {% endfor %}
@@ -61,13 +65,17 @@
         
         <tr>
             {% for session in upcoming_sessions %}
-                <td> {{ session }} </td>
+                <td>
+                    <a href="{% url 'ngoma:session' session.id %}">{{session}}</a> 
+                </td>
             {% empty %}
                 <td> No sessions have been created </td>
             {% endfor %}
 
             {% for session in past_sessions %}
-                <td> {{ session }} </td>
+                <td>
+                    <a href="{% url 'ngoma:session' session.id %}">{{session}}</a> 
+                </td>
             {% empty %}
                 <td> No sessions have been created </td>
             {% endfor %}

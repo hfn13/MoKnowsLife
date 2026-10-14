@@ -33,8 +33,7 @@ class Status(models.Model):
 ## LAYER MODELS
 class Macrocycle(models.Model):
     name = models.CharField(max_length=200)
-    start_date = models.DateField(null=True, blank=True)
-    estimated_weeks = models.IntegerField(null=True, blank=True)
+    estimated_weeks = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     #athlete = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
 
@@ -184,7 +183,7 @@ class ProfileMacrocycle(models.Model):
     season_phase = models.ForeignKey(SeasonPhase, on_delete=models.SET_NULL, null=True, blank=True)
     program_phase = models.ForeignKey(PhaseChoice, on_delete=models.SET_NULL, null=True, blank=True)
     availability = models.CharField(choices = AVAILABILITY_CHOICES, default='available')
-    
+    start_date = models.DateField(blank=True, null=True)
     def __str__(self):
         return f'{self.profile.last_name} - {self.macrocycle}'      
 

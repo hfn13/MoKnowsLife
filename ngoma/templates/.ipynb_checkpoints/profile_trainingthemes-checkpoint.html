@@ -1,0 +1,18 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h2>{{ macrocycle }}</h2>
+<h4>Training Themes</h4>
+<ul>
+    {% for theme in themes %}
+    <li>
+        <a href="{% url 'ngoma:training_theme' theme.id %}">{{ theme }}</p>
+    </li>
+    
+    {% empty %}
+    <p>No themes added.</p>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'ngoma:new_trainingtheme' macrocycle.id %}">Create new Training Theme</a>
+{% endblock content %}

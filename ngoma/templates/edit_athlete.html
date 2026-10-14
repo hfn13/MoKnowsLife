@@ -1,0 +1,11 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<p> Edit profile</p>
+
+<form action="{% url 'ngoma:edit_athlete' athlete.id %}" method='post'>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button name="submit">save changes</button>
+</form>
+{% endblock content %}

@@ -1,0 +1,10 @@
+{% block content %}
+
+<h3>Create a new training block to add to {{ macrocycle }}</h3>
+<form action="{% url 'ngoma:new_attendance' macrocycle.id %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">new macrocycle</button>
+</form>
+
+{% endblock content %}

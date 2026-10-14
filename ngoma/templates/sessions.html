@@ -1,0 +1,16 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h1> TRAINING SESSIONS </h1>
+
+<ul>
+    {% for session in sessions %}
+    <li>
+        <a href="{% url 'ngoma:session' session.id %}">{{ session }}</a>
+    </li>
+    {% empty %}
+    <p>No training sessions have been added.</p>
+    {% endfor %}
+</ul>
+
+{% endblock content %}

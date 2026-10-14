@@ -1,0 +1,19 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+{% if not week.completed %}
+    <a href="{% url 'ngoma:complete_week' week.id %}">Mark Complete</a>
+{% else %}
+    <span style="color: green;">Completed ✔</span>
+{% endif %}
+
+
+<h1>{{wwek}}</h1>
+<h4>
+    <em>
+        {{macrocycle}}
+    </em>
+</h4>
+
+
+{% endblock content%}

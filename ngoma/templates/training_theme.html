@@ -1,0 +1,28 @@
+{% extends 'base2.html' %}
+{% block content %}
+<h2>{{ theme }}</h2>
+<a href="{% url 'ngoma:edit_trainingtheme' theme.id %}">Edit theme</a>
+
+<h4>Profiles using the theme</h4>
+<table>
+    <thead>
+        <th>Profile name</th>
+        <th>Profile category</th>
+        
+    </thead>
+    <tbody>
+        {% for profile in profiles %}
+        <tr>
+            <td>
+                <a href="{% url 'ngoma:athlete' profile.id %}">{{ profile }}</a>
+            </td>
+            <td>{{ profile.category }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td>No profiles added</td>
+            <td>No profiles added</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock content %}

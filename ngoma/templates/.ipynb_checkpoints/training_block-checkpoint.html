@@ -1,0 +1,19 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h2>{{ block }}</h2>
+<a href="{% url 'ngoma:edit_trainingblock' block.id %}">Edit macrocycle</a>
+
+<ul>
+    {% for theme in themes %}
+    <li>
+        <a href="{% url 'ngoma:training_theme' theme.id %}">{{ theme }}</p>
+    </li>
+    
+    {% empty %}
+    <p>No themes added.</p>
+    
+    {% endfor %}
+</ul>
+
+{% endblock content %}

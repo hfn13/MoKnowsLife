@@ -25,12 +25,12 @@ class NewSessionForm(forms.ModelForm):
 class NewMacrocycleForm(forms.ModelForm):
     class Meta:
         model = Macrocycle
-        fields = ['name', 'start_date', 'description']
+        fields = ['name', 'estimated_weeks', 'description']
 
 class NewProfileMacrocycleForm(forms.ModelForm):
     class Meta:
         model = ProfileMacrocycle
-        fields = ['macrocycle', 'profile', 'season_phase', 'program_phase']
+        fields = ['macrocycle', 'profile', 'season_phase', 'program_phase', 'start_date']
 
 class NewTestForm(forms.ModelForm):
     class Meta:

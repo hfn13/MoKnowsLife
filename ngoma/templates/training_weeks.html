@@ -1,0 +1,15 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h2>{{ macrocycle }}</h2>
+
+<ul>
+    {% for week in weeks %}
+    <li>
+        <a href="{% url 'ngoma:training_week' week.id ">{{ week }}</a>
+    </li>
+    {% empty %}
+    <p>No training weeks have been added</p>
+    {% endfor %}
+</ul>
+{% endblock content %}

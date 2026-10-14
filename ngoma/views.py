@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
-from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTIScore, TrendTestData, Macrocycle, ProfileMacrocycle, ClientCategory, Status, TrainingWeek, WorkoutCategory
+from .models import ProfileData,Session,Attendance,TrackTest,TrackTestData,LiftTest,LiftTestData,WorkoutDrill, Upload, MenuCategory, MenuSubCategory, PhaseChoice, BlockChoice,MenuOption, TrendAnalyses, TrendTest, CISTIScore, TrendTestData, Macrocycle, ProfileMacrocycle, ClientCategory, Status, TrainingWeek, WorkoutCategory, Attendance, TrainingTheme, TrainingBlock
 from django.http import JsonResponse
 import calendar
 from calendar import HTMLCalendar
@@ -337,7 +337,7 @@ def update_submenu(request, submenu_id):
 from django.utils.timezone import now
 
 def ngoma_dashboard(request):
-    macrocycles = Macrocycle.objects.all()
+    macrocycles = ProfileMacrocycle.objects.all()
     sessions = Session.objects.all()
 
     today = now().date()
@@ -345,8 +345,16 @@ def ngoma_dashboard(request):
     current_macrocycles = []
     ended_macrocycles = []
 
+    
     for macrocycle in macrocycles:
-        if macrocycle.end_date > today:
+        from datetime import timedelta
+        
+        weeks = macrocycle.macrocycle.estimated_weeks
+        days = int(weeks) * 7
+        
+        estimated_end_date = macrocycle.start_date + timedelta(days=days)
+ 
+        if estimated_end_date > today:
             current_macrocycles.append(macrocycle)
         else:
             ended_macrocycles.append(macrocycle)
@@ -371,7 +379,14 @@ def ngoma_dashboard(request):
 
     return render(request, 'ngoma_dashboard.html', context)
 
+def macrocycles(request):
+    macrocycles = Macrocycle.objects.all()
 
+    context = {
+        'macrocycles' : macrocycles
+    }
+
+    return render(request, 'macrocycles.html', context)
     
 def macrocycle(request, macrocycle_id):
     macrocycle = Macrocycle.objects.get(id=macrocycle_id)
@@ -380,7 +395,7 @@ def macrocycle(request, macrocycle_id):
     def generate_training_weeks(profile_macrocycle):
         mc = profile_macrocycle.macrocycle  # Macrocycle object
     
-        start = mc.start_date
+        start = profile_macrocycle.start_date
         weeks = mc.estimated_weeks
     
         for week in range(1, int(weeks)):
@@ -396,6 +411,15 @@ def macrocycle(request, macrocycle_id):
     }
     return render(request, 'macrocycle.html', context)
 
+def sessions(request):
+    sessions = Session.objects.all()
+
+    context = {
+        'sessions' : sessions
+    }
+
+    return render(request, 'sessions.html', context)
+    
 def session(request, session_id):
     session = Session.objects.get(id=session_id)
 
@@ -426,7 +450,9 @@ def athlete(request, athlete_id):
     age = today.year - athlete.DOB.year - (
         (today.month, today.day) < (athlete.DOB.month, athlete.DOB.day)
     )
-    macrocycles = ProfileMacrocycle.objects.filter(profile=athlete).order_by('-macrocycle__start_date')
+    macrocycles = ProfileMacrocycle.objects.filter(profile=athlete).order_by('-start_date')
+
+    
 
     selected_id = request.GET.get("macrocycle_id")
     
@@ -437,6 +463,9 @@ def athlete(request, athlete_id):
         season_phase = None
         program_phase = None
         training_weeks = None
+        week = None
+        theme = None
+        block = None
         
     else:
         # CASE 2: Athlete selected a macrocycle
@@ -448,13 +477,47 @@ def athlete(request, athlete_id):
         else:
             # CASE 3: Default to latest macrocycle
             macrocycle = macrocycles.first()
-    
+
+        
         macrocycle_obj = macrocycle.macrocycle
 
         season_phase = macrocycle.season_phase
         program_phase = macrocycle.program_phase
         training_weeks = macrocycle.macrocycle.estimated_weeks
+
+        def get_current_training_week(profile_macrocycle):
+            weeks = TrainingWeek.objects.filter(macrocycle=profile_macrocycle).order_by("week_number")
         
+            # If no weeks exist, create week 1
+            if not weeks.exists():
+                week1, _ = TrainingWeek.objects.get_or_create(
+                    macrocycle=profile_macrocycle,
+                    week_number=1,
+                    defaults={"completed": False}
+                )
+                return week1
+        
+            # Find first incomplete week
+            for week in weeks:
+                if not week.completed:
+                    return week
+        
+            # If all weeks are complete → return last week
+            return weeks.last()
+
+        
+        week = get_current_training_week(macrocycle)
+        
+        theme=TrainingTheme.objects.filter(
+            start_week__week_number__lte=week.week_number,
+            end_week__week_number__gte=week.week_number).first()
+        
+        block = TrainingBlock.objects.filter(
+            start_week__week_number__lte=week.week_number,
+            end_week__week_number__gte=week.week_number
+        ).first()
+
+
         
    
     # track_data = TrackTestData.objects.filter(profile=athlete)
@@ -553,7 +616,10 @@ def athlete(request, athlete_id):
         'macrocycle' : macrocycle,
         'season_phase' : season_phase,
         'program_phase' : program_phase,
-        'training_weeks' : training_weeks
+        'training_weeks' : training_weeks,
+        'week' : week,
+        'theme' : theme,
+        'block' : block
         # 'track_tests':track_tests,
         # 'track_data' : track_data,
         # 'track_summary':track_summary,
@@ -568,328 +634,146 @@ def athlete(request, athlete_id):
 
     return render(request, 'athlete.html', context)
 
-def profile_macrocycle(request, profile_id, macrocycle_id):
-    macrocycle_obj = Macrocycle.objects.get(id=macrocycle_id)
-    profile = ProfileData.objects.get(id=profile_id)
-    macrocycle = ProfileMacrocycle.objects.get(macrocycle=macrocycle_obj, profile=profile)
+    
+def tests_display(request):
+    tests = TestName.objects.all()
+
+    context = {
+        'tests' :tests
+    }
+
+    return render(request, 'tests_display.html', context)
+
+def test_display(request, test_id):
+    test = TestName.objects.get(id=test_id)
+
+    context = {
+        'test' : test
+    }
+    return render(request, 'test_display.html', context)
 
 
+def training_themes(request):
+    themes = TrainingTheme.objects.all()
+    theme_duration_dict = {}
+    for theme in themes:
+        theme_duration_dict[theme] = int(theme.end_week) - int(theme.start_week)
     
     context = {
+        'themes' : themes
+    }
+    return render(request, 'training_themes.html', context)
+
+
+def profile_trainingthemes(request, profile_id):
+    macrocycle = ProfileMacrocycle.objects.get(id=profile_id)
+    themes = TrainingTheme.objects.filter(macrocycle = macrocycle)
+    profile = macrocycle.profile
+    blocks = TrainingBlock.objects.all()
+
+    theme_dict = {}
+    for theme in themes:
+        theme_dict[theme] = int(theme.end_week.week_number) - int(theme.start_week.week_number)
+        theme_dict[theme] = blocks.filter(theme=theme)
+        
+    context = {
         'profile' : profile,
+        'themes' : themes,
+        'macrocycle' : macrocycle,
+        'theme_dict' : theme_dict
+    }
+    return render(request, 'profile_trainingthemes.html', context)
+    
+def training_theme(request, theme_id):
+    theme = TrainingTheme.objects.get(id=theme_id)
+    profiles = theme.profile_set.all()
+    
+    context = {
+        'theme' : theme,
+        'profiles' : profiles
+    }
+    return render(request, 'training_theme.html', context)
+    
+def training_blocks(request):
+    blocks = TrainingBlock.objects.all()
+    
+    block_info_dict = {}
+    for block in blocks:
+        block_info_dict[block] = int(block.end_week) - int(block.start_week)
+        
+        
+    context = {
+        'blocks' : blocks,
+        'block_info_dict' : block_info_dict
+    }
+    
+    return render(request, 'training_blocks.html', context)
+
+def profile_trainingblocks(request, theme_id):
+    theme = TrainingTheme.objects.get(id=theme_id)
+    blocks = TrainingBlock.objects.filter(theme=theme)
+    macrocycle = theme.macrocycle
+    
+
+    context = {
+        'profile' : profile,
+        'blocks' : blocks 
+    }
+    return render(request, 'profile_trainingblocks.html', context)
+
+
+def training_block(request, block_id):
+    block = TrainingBlock.objects.all()
+    themes = block.theme_set.all()
+    sessions = Attendance.objects.filter(block = block)
+    
+    context = {
+        'block' : block,
+        'themes' : themes
+    }
+    return render(request, 'training_block.html', context)
+
+
+def complete_week(request, week_id):
+    week = TrainingWeek.objects.get(id=week_id)
+    week.completed = True
+    week.save()
+    return redirect('ngoma:training_week', week.id)
+
+
+def training_weeks(request, macrocycle_id):
+    macrocycle = ProfileMacrocycle.objects.get(id=macrocycle_id)
+    weeks = TrainingWeek.objects.filter(macrocycle=macrocycle)
+
+    context = {
+        'macrocycle' : macrocycle,
+        'weeks' : weeks
+    }
+    return render(request, 'training_weeks.html', context)
+
+def training_week(request, week_id):
+    week = TrainingWeek.objects.get(id=week_id)
+    macrocycle = week.macrocycle
+    profile = macrocycle.profile
+
+    context = {
+        'week' : week,
         'macrocycle' : macrocycle
     }
-    return render(request, 'profile_macrocycle.html', context)
-    
-def new_athlete(request):
-    if request.method == 'POST':
-        form = NewAthleteForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('ngoma:athletes')
-    else:
-        form = NewAthleteForm()
-
-    return render(request, 'newathlete.html', {'form': form})
+    return render(request, 'training_week.html', context)
 
 
-athletes_data = {
-    'Henry Nyinguro' : {'lift' : r"C:\Users\cex\Desktop\moknowslife\Track_DummyData.csv",
-                        'track' : r"C:\Users\cex\Desktop\moknowslife\Lift_DummyData.csv",
-                        #Trend analyses
-                        'Consistency vs Distance':r"C:\Users\cex\Desktop\moknowslife\Consistency vs Distance.csv",
-                        'Effort vs Time':r"C:\Users\cex\Desktop\moknowslife\Effort vs Time.csv",
-                        'Performance vs Distance':r"C:\Users\cex\Desktop\moknowslife\Performance vs Distance.csv",
-                        'Drop % vs Distance':r"C:\Users\cex\Desktop\moknowslife\Drop % vs Distance.csv",
-                        '2 x 100m CISTI': r"C:\Users\cex\Desktop\moknowslife\2x100 CISTI.csv",
-                        '3 x 300m CISTI': r"C:\Users\cex\Desktop\moknowslife\3x300m CISTI.csv",
-                        '2 x 150m CISTI': r"C:\Users\cex\Desktop\moknowslife\2x150m CISTI.csv",
-                        '200m Breakdown CISTI': r"C:\Users\cex\Desktop\moknowslife\200m break CISTI.csv",
-                        '200m Split CISTI': r"C:\Users\cex\Desktop\moknowslife\200m Split CISTI.csv",
-                        '300m @85% CISTI': r"C:\Users\cex\Desktop\moknowslife\300m @85% CISTI.csv"
-                        
-                        
-                       }
-}
-def update_athlete_profile(request, athlete_id):
-    athlete = ProfileData.objects.get(id=athlete_id)
-    athlete_string = f'{athlete.first_name} {athlete.last_name}'
+
+def complete_session(request, attendance_id):
+    session = Attendance.objects.get(id=attendance_id)
+    session.completed = True
+    session.save()
+    return redirect('ngoma:profile_trainingblocks', session.macrocycle.id)
 
     
-    # Lift data
-    lift_df = pd.read_csv(athletes_data[athlete_string]['lift'])
-
-    lift_tests = lift_df.columns.difference(['Date','Unnamed: 0'])
-    for _, row in lift_df.iterrows():
-        for test in lift_tests:
-            test_obj, _ = LiftTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value): 
-                continue
-                
-            LiftTestData.objects.get_or_create(
-                profile = athlete,
-                test = test_obj,
-                date= row['Date'],
-                value = value
-            )
-    
-    # Track data
-    track_df = pd.read_csv(athletes_data[athlete_string]['track'])
-    track_tests = track_df.columns.difference(['Date','Unnamed: 0'])
-    for _, row in track_df.iterrows():
-        for test in track_tests:
-            test_obj, _ = TrackTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value):
-                continue
-                
-            TrackTestData.objects.get_or_create(
-                profile = athlete,
-                test = test_obj,
-                date= row['Date'],
-                value = value
-            )
-
-
-
-    ### Trend Analyses
-    # Consistency vs Distance
-    con_v_dist = pd.read_csv(athletes_data[athlete_string]['Consistency vs Distance'])
-    cvd_tests = con_v_dist.columns.difference(['Unnamed: 0'])
-    cvd_analyses = TrendAnalyses.objects.get(analyses='Consistency vs Distance')
-    for _, row in con_v_dist.iterrows():
-        for test in cvd_tests:
-            test_obj, _ = TrendTest.objects.get_or_create(
-                test = test
-            )
-            value = row[test]
-            if pd.isna(value):
-                continue
-                
-            TrendTestData.objects.get_or_create(
-                profile = athlete,
-                analyses = cvd_analyses,
-                test = test_obj,
-                date = pd.to_datetime(row['Date']).date(),
-                value = value
-            )
-    
-    # # Effort vs Time
-    # eff_v_time = pd.read_csv(athletes_data[athlete_string]['Effort vs Time'])
-    # evt_tests = eff_v_time.columns.difference(['Unnamed: 0'])
-    # evt_analyses = TrendAnalyses.objects.get(analyses='Effort vs Time')
-    # for _, row in eff_v_time.iterrows():
-    #     for test in evt_tests:
-    #         test_obj, _ = TrendTest.objects.get_or_create(
-    #             test = test
-    #         )
-    #         value = row[test]
-    #         if pd.isna(value):
-    #             continue
-                
-    #         TrendTestData.objects.get_or_create(
-    #             profile = athlete,
-    #             analyses = evt_analyses,
-    #             test = test_obj,
-    #             date= pd.to_datetime(row['Date']).date(),
-    #             value = value
-                
-    #         )
-            
-    # # Performance vs Distance
-    # perf_v_dist = pd.read_csv(athletes_data[athlete_string]['Performance vs Distance'])
-    # pvd_tests = perf_v_dist.columns.difference(['Unnamed: 0'])
-    # pvd_analyses = TrendAnalyses.objects.get(analyses='Performance vs Distance')
-    # for _, row in perf_v_dist.iterrows():
-    #     for test in pvd_tests:
-    #         test_obj, _ = TrendTest.objects.get_or_create(
-    #             test = test
-    #         )
-    #         value = row[test]
-    #         if pd.isna(value):
-    #             continue
-                
-    #         TrendTestData.objects.get_or_create(
-    #             profile = athlete,
-    #             analyses = pvd_analyses,
-    #             test = test_obj,
-    #             date=row['Date'],
-    #             value = value
-                
-    #         )
-    
-    # # Drop % vs Distance
-    # drop_v_dist = pd.read_csv(athletes_data[athlete_string]['Drop % vs Distance'])
-    # dvd_tests = drop_v_dist.columns.difference(['Unnamed: 0'])
-    # dvd_analyses = TrendAnalyses.objects.get(analyses='Drop % vs Distance')
-    # for _, row in drop_v_dist.iterrows():
-    #     for test in dvd_tests:
-    #         test_obj, _ = TrendTest.objects.get_or_create(
-    #             test = test
-    #         )
-    #         value = row[test]
-    #         if pd.isna(value):
-    #             continue
-                
-    #         TrendTestData.objects.get_or_create(
-    #             profile = athlete,
-    #             analyses = dvd_analyses,
-    #             test = test_obj,
-    #             date=row['Date'],
-    #             value = value
-    #         )
-
-
-    ## CISTI Scores
-    METRIC_MAP = {
-    'Consistency': 'C',
-    'Intensity': 'IN',
-    'Speed': 'S',
-    'Technique': 'T',
-    'Intent': 'IT',
-    'Overall': 'O'
-}
-
-#     #2 x 100m CISTI
-#     CISTI_2x100m = pd.read_csv(athletes_data[athlete_string]['2 x 100m CISTI'])
-#     for _,row in CISTI_2x100m.iterrows():
-#         test_obj,_ = TrendTest.objects.get_or_create(
-#             test = '2 x 100m'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             analyses = None,
-#             test = test_obj,
-#             date = row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-        
-#     #3 x 300m CISTI
-#     CISTI_3x300m = pd.read_csv(athletes_data[athlete_string]['3 x 300m CISTI'])
-#     for _,row in CISTI_3x300m.iterrows():
-#         test_obj,_ = TrendTest.objects.get_or_create(
-#             test = '3 x 300m'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             analyses = None,
-#             test = test_obj,
-#             date = row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-        
-#     #2 X 150M CISTI
-#     CISTI_2x150m = pd.read_csv(athletes_data[athlete_string]['2 x 150m CISTI'])
-#     for _,row in CISTI_2x150m.iterrows():
-#         test_obj, _ = TrendTest.objects.get_or_create(
-#             test = '2 x 150m'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             analyses = None,
-#             test = test_obj,
-#             date = row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-        
-#     #200m Breakdown CISTI
-#     CISTI_200mbreak = pd.read_csv(athletes_data[athlete_string]['200m Breakdown CISTI'])
-#     for _,row in CISTI_200mbreak.iterrows():
-#         test_obj, _ = TrendTest.objects.get_or_create(
-#             test = '200m Breakdown'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             analyses = None,
-#             test = test_obj,
-#             date = row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-        
-#     #200m Split CISTI
-#     CISTI_200msplit = pd.read_csv(athletes_data[athlete_string]['200m Split CISTI'])
-#     for _,row in CISTI_200msplit.iterrows():
-#         test_obj,_ = TrendTest.objects.get_or_create(
-#             test = '200m Split'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             test = test_obj,
-#             date= row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-        
-#     #300m @85% CISTI
-#     CISTI_300mat85 = pd.read_csv(athletes_data[athlete_string]['300m @85% CISTI'])
-#     for _,row in CISTI_300mat85.iterrows():
-#         test_obj,_ = TrendTest.objects.get_or_create(
-#             test = '300m @ 85%'
-#         )
-#         profile_test_obj, _ = TrendTestData.objects.get_or_create(
-#             profile = athlete,
-#             analyses = None,
-#             test = test_obj,
-#             date = row['Date'],
-#             value = float(0)
-            
-#         )
-#         CISTI_score.objects.get_or_create(
-#             test = profile_test_obj,
-#             metric = METRIC_MAP[row['Metric']],
-#             score = float(row['Score']),
-#             notes = row['Notes'],
-#             date = row['Date']
-#         )
-    return redirect('ngoma:athlete', athlete_id)
-
-
 ###  FORMS
-from ngoma.forms import NewWorkoutDrillForm, NewSessionForm, NewMacrocycleForm, NewProfileMacrocycleForm, NewTestForm, NewTrainingThemeForm, NewTrainingBlockForm, NewMenuCategoryForm, NewMenuSubCategory
+
+from ngoma.forms import NewWorkoutDrillForm, NewSessionForm, NewMacrocycleForm, NewProfileMacrocycleForm, NewTestForm, NewTrainingThemeForm, NewTrainingBlockForm, NewMenuCategoryForm, NewMenuSubCategory, AttendanceForm
 
 
 def forms_display(request):
@@ -912,7 +796,24 @@ def new_athlete(request):
 
     return render(request, 'newathlete.html', {'form': form})
 
+def edit_athlete(request, athlete_id):
+    athlete = ProfileData.objects.get(id=athlete_id)
 
+    if request.method != 'POST':
+        form = NewAthleteForm(instance=athlete)
+
+    else:
+        form = NewAthleteForm(instance=athlete, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:athlete', args=[athlete.id]))
+            
+    context = {
+        'athlete' : athlete,
+        'form' : form
+    }
+    return render(request, 'edit_athlete.html', context)
+            
 def new_workoutdrill(request, block_id):
     drill_block = BlockChoice.objects.get(id = block_id)
     if request.method == 'POST':
@@ -920,7 +821,7 @@ def new_workoutdrill(request, block_id):
         if form.is_valid():
             drill = form.save(commit=False)
             drill.block = drill_block
-            form.save()
+            drill.save()
             return redirect('ngoma:workout_library')
 
     else:
@@ -933,7 +834,25 @@ def new_workoutdrill(request, block_id):
     }
     return render(request, 'new_workoutdrill.html', context)
 
+def edit_workoutdrill(request, workoutdrill_id):
+    workout_drill = WorkoutDrill.objects.get(id=workoutdrill_id)
 
+    if request.method != 'POST':
+        form = NewWorkoutDrillForm(instance=athlete)
+
+    else:
+        form = NewWorkoutDrillForm(instance=athlete, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:workout_library'))
+
+    context = {
+        'workout_drill' : workout_drill,
+        'form' : form
+    }
+
+    return render(request, 'edit_workoutdrill.html', context)
+            
 def new_session(request):
     if request.method == 'POST':
         form = NewSessionForm(request.POST)
@@ -951,6 +870,24 @@ def new_session(request):
 
     return render(request, 'new_session.html', context)
 
+def edit_session(request, session_id):
+    session = Session.objects.get(id=session_id)
+
+    if request.method != 'POST':
+        form = NewSessionForm(instance=session)
+
+    else:
+        form = NewSessionForm(instance=session, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:session', args=[session.id]))
+
+    context = {
+        'session' : session,
+        'form' : form
+    }
+    return render(request, 'edit_session.html', context)
+    
 def new_macrocycle(request):
     if request.method == 'POST':
         form = NewMacrocycleForm(request.POST)
@@ -970,12 +907,32 @@ def new_macrocycle(request):
 
     return render(request, 'new_macrocycle.html', context)
 
+
+def edit_macrocycle(request, macrocycle_id):
+    macrocycle = Macrocycle.objects.get(id=macrocycle_id)
+
+    if request.method != 'POST':
+        form = NewMacrocycleForm(instance=macrocycle)
+
+    else:
+        form = NewMacrocycleForm(instance=macrocycle, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:ngoma_dashboard'))
+
+    context = {
+        'macrocycle' : macrocycle,
+        'form' : form
+    }
+    return render(request, 'edit_macrocycle.html', context)
+    
+
 def new_profilemacrocycle(request, athlete_id):
     def generate_training_weeks(profile_macrocycle):
-            mc = profile_macrocycle.macrocycle  # Macrocycle object
+            mc = profile_macrocycle  # Macrocycle object
         
             start = mc.start_date
-            weeks = mc.estimated_weeks
+            weeks = mc.macrocycle.estimated_weeks
 
             for week in range(1, int(weeks) + 1):
                 TrainingWeek.objects.update_or_create(
@@ -1001,32 +958,117 @@ def new_profilemacrocycle(request, athlete_id):
 
     context = {
         
-        'form' : form
+        'form' : form,
+        'athlete' : athlete
     }
 
-    return render(request, 'new_macrocycle.html', context)
+    return render(request, 'new_profilemacrocycle.html', context)
 
+
+def edit_profilemacrocycle(request, p_macrocycle_id):
+    macrocycle = ProfileMacrocycle.objects.get(id = p_macrocycle_id)
+    athlete = profile_macrocycle.profile
+    if request.method != 'POST':
+        form = NewProfileMacrocycleForm(instance=p_macrocycle)
+
+    else:
+        form = NewProfileMacrocycleForm(instance=macrocycle, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:athlete', args=[athlete.id]))
+
+    context = {
+        'athlete' : athlete,
+        'macrocycle' : macrocycle,
+        'form' : form
+    }
+    return render(request, 'edit_profilemacrocycle.html', context)
+
+    
 def new_trainingtheme(request, macrocycle_id):
     macrocycle = ProfileMacrocycle.objects.get(id=macrocycle_id)
+    profile = macrocycle.profile
     if request.method == 'POST':
         form = NewTrainingThemeForm(request.POST)
         if form.is_valid():
             trainingtheme_form = form.save(commit=False)
             trainingtheme_form.macrocycle = macrocycle
-            form.save()
-            return redirect('ngoma:ngoma_home')
+            trainingtheme_form.save()
+            return redirect('ngoma:training_themes', macrocycle_id)
 
     else:
         form = NewTrainingThemeForm()
 
     context = {
-        
-        'form' : form
+        'profile' : profile,
+        'form' : form,
+        'macrocycle' : macrocycle
     }
 
-    return render(request, 'new_macrocycle.html', context)
+    return render(request, 'new_trainingtheme.html', context)
 
-def new_test(request):
+
+def edit_trainingtheme(request, theme_id):
+    theme = TrainingTheme.objects.get(id=theme_id)
+    if request.method != 'POST':
+        form = NewTrainingThemeForm(instance=theme)
+
+    else:
+        form = NewTrainingThemeForm(instance=theme, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:training_theme', args=[theme.id]))
+
+    context = {
+        'theme' : theme,
+        'form' : form
+    }
+    return render(request, 'edit_trainingtheme.html', context)
+
+
+def new_trainingblock(request, theme_id):
+    theme = TrainingTheme.objects.get(id=theme_id)
+    profile = theme.profile
+    if request.method == 'POST':
+        form = NewTrainingBlockForm(request.POST)
+        if form.is_valid():
+            trainingblock_form = form.save(commit=False)
+            trainingblock_form.theme = theme
+            trainingblock_form.save()
+            return redirect('ngoma:profile_trainingthemes', profile.id)
+
+    else:
+        form = NewTrainingBlockForm()
+
+    context = {
+        
+        'form' : form,
+        'theme' : theme
+        
+    }
+
+    return render(request, 'new_trainingblock.html', context)
+
+
+def edit_trainingblock(request, block_id):
+    block = TrainingBlock.objects.get(id=block_id)
+    if request.method != 'POST':
+        form = NewTrainingBlockForm(instance=block)
+
+    else:
+        form = NewTrainingBlockForm(instance=block, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:training_block', block_id))
+
+    context = {
+        'block' : block,
+        'form' : form
+    }
+    return render(request, 'edit_trainingtheme.html', context)
+
+    
+def new_testname(request):
     if request.method == 'POST':
         form = NewTestForm(request.POST)
         if form.is_valid():
@@ -1041,4 +1083,64 @@ def new_test(request):
         'form' : form
     }
 
-    return render(request, 'new_test.html', context)
+    return render(request, 'new_testname.html', context)
+
+
+def edit_testname(request, test_id):
+    test = TestName.objects.get(id=test_id)
+    if request.method != 'POST':
+        form = NewTestForm(instance=test)
+
+    else:
+        form = NewTestForm(instance=test, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('ngoma:test_display', args=[test.id]))
+
+    context = {
+        'test' : test,
+        'form' : form
+    }
+    return render(request, 'edit_testname.html', context)
+
+def new_attendance(request, profilemacrocycle_id):
+    profile_macrocycle = ProfileMacrocycle.objects.get(id=profilemacrocycle_id)
+
+    if request.method == 'POST':
+        form = AttendanceForm(request.POST, profile_macrocycle=profile_macrocycle)
+        if form.is_valid():
+            attendance = form.save(commit=False)
+            attendance.profile = profile_macrocycle
+            attendance.save()
+            return redirect('ngoma:profile_trainingblock', profilemacrocycle_id)
+
+    else:
+        form = AttendanceForm(profile_macrocycle=profile_macrocycle)
+
+    context = {
+        'profile_macrocycle' : profile_macrocycle,
+        'form' : form
+    }
+    return render(request, 'new_attendance.html', {'form': form})
+
+def edit_attendance(request, attendance_id):
+    attendance = Attendance.objects.get(id=attendance_id)
+    macrocycle = attendance.profile
+    if request.method != 'POST':
+        form = AttendanceForm(instance=attendance)
+
+    else:
+        form = AttendanceForm(instance=attendance, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpsResponseRedirect(reverse('ngoma:profile_trainingblock', macrocycle.id))
+
+    context = {
+        'attendance' : attendance,
+        'macrocycle' : macrocycle,
+        'form' : form
+    }
+
+    return render(request, 'edit_attendance.html', context)
+
+

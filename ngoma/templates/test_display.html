@@ -1,0 +1,6 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h2>{{ test }}</h2>
+<a href="{% url 'ngoma:edit_testname' test.id %}">Edit test</a>
+{% endblock content %}

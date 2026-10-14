@@ -79,4 +79,7 @@ urlpatterns=[
     # Add new macrocycle
     path('add_macrocycle/', views.new_macrocycle, name='new_macrocycle'),
 
+    # Add new profile macrocycle
+    path('add_profilemacrocycle/<int:athlete_id>', views.new_profilemacrocycle, name='new_profilemacrocycle')
+
 ]

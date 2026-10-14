@@ -1,0 +1,34 @@
+{% extends 'base2.html' %}
+{% load dict_extras %}
+{% block content %}
+
+<h2>Training Blocks</h2>
+<table>
+    <thead>
+        <th>Block name</th>
+        <th>Block duration</th>
+        <th>Macrocycle</th>
+    </thead>
+    <tbody>
+    {% for block,duration in block_info_dict.items %}
+    <tr>
+        <td>
+            <a href="{% url 'ngoma:training_block' block.id %}">{{ block }}</a>
+        </td>
+        <td> {{ duration }} </td>
+        <td> {{ block.theme.macrocycle }} </td>
+    </tr>
+    
+    {% empty %}
+    
+    <tr>
+        <td>No blocks have been created</td>
+        <td>No blocks have been created</td>
+        <td>No blocks have been created</td>
+    </tr>
+    
+    {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

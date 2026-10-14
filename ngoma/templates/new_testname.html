@@ -1,0 +1,9 @@
+{% block content %}
+
+<p> Create new Test</p>
+<form action="{% url 'ngoma:new_testname' %}" method="post">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button name="submit">save new test</button>
+</form>
+{% endblock content %}

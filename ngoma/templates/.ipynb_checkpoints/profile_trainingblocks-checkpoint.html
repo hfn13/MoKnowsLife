@@ -1,0 +1,31 @@
+{% extends 'base2.html' %}
+{% block content %}
+<h2>{{ block }}</h2>
+<h3> [[ macrocycle }}</h3>
+<h4>
+    <em>{{ theme }}</em>
+</h4>
+
+<table>
+    <thead>
+        <th> Session </th>
+        <th> Week Number </th>
+        <th> Completed </th>
+    </thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr>
+            <td>{{session}}</td>
+            <td>{{session.week}}</td>
+            <td>{{session.completed}}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td>No sessions available</td>
+            <td>No sessions available</td>
+            <td>No sessions available</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

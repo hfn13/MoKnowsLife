@@ -1,0 +1,5 @@
+<form action="{% url 'ngoma:new_profilemacrocycle' athlete.id %}" method='post'>
+ {% csrf_token %}
+ {{ form.as_p }}
+ <button name="submit">new macrocycle</button>
+</form>

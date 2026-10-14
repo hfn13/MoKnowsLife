@@ -1,6 +1,12 @@
 {% extends 'base2.html' %}
 {% block content %}
 
+{% if not week.completed %}
+    <a href="{% url 'ngoma:complete_session' session.id %}">Mark Complete</a>
+{% else %}
+    <span style="color: green;">Completed ✔</span>
+{% endif %}
+
 <h1> {{ session }} </h1>
 
 {% endblock content %}

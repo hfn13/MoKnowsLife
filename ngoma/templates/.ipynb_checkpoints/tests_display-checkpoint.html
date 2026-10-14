@@ -1,0 +1,15 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<h1> TESTS </h1>
+
+<ul>
+    {% for test in tests %}
+    <li>
+        <p>{{ test }}</p>
+    </li>
+    {% empty %}
+    <p>No tests have been added</p>
+    {% endfor %}
+</ul>
+{% endblock content %}

@@ -1,0 +1,7 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+
+<h1>{{ macrocycle }}</h1>
+<a href="{% url 'ngoma:edit_macrocycle' macrocycle.id %}">Edit macrocycle</a>
+{% endblock content %}

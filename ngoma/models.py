@@ -33,8 +33,7 @@ class Status(models.Model):
 ## LAYER MODELS
 class Macrocycle(models.Model):
     name = models.CharField(max_length=200)
-    start_date = models.DateField(null=True, blank=True)
-    estimated_weeks = models.IntegerField(null=True, blank=True)
+    estimated_weeks = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     #athlete = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
 
@@ -184,7 +183,7 @@ class ProfileMacrocycle(models.Model):
     season_phase = models.ForeignKey(SeasonPhase, on_delete=models.SET_NULL, null=True, blank=True)
     program_phase = models.ForeignKey(PhaseChoice, on_delete=models.SET_NULL, null=True, blank=True)
     availability = models.CharField(choices = AVAILABILITY_CHOICES, default='available')
-    
+    start_date = models.DateField(blank=True, null=True)
     def __str__(self):
         return f'{self.profile.last_name} - {self.macrocycle}'      
 
@@ -192,6 +191,8 @@ class TrainingWeek(models.Model):
     
     macrocycle = models.ForeignKey(ProfileMacrocycle, on_delete=models.CASCADE)
     week_number = models.IntegerField()
+    
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f'Week {self.week_number}'
@@ -224,16 +225,20 @@ class TrainingBlock(models.Model):
 
 
 class Attendance(models.Model):
-   
-    player = models.ForeignKey(ProfileData, on_delete=models.CASCADE)
+
+    profile = models.ForeignKey(ProfileMacrocycle, on_delete=models.CASCADE)
+    block = models.ForeignKey(TrainingBlock, on_delete=models.CASCADE)
+    week = models.ForeignKey(TrainingWeek, on_delete=models.CASCADE)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     notes = models.TextField(blank=True, null=True)
+    completed = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('player', 'session')
+        unique_together = ('week', 'session')
 
     class Meta:
         app_label='ngoma'
+
 
 ###
 
